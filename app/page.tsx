@@ -124,7 +124,9 @@ const PROMPT_TEXT = `First, I will provide my template resume. Then, I will shar
   * After scores satisfied minimum requirements, provide again ATS score and Human Review score and Seniority score.
   * And then provide final resume.
 
-TEMPLATE RESUME:`
+TEMPLATE RESUME:
+
+JD:`
 
 export default function Home() {
   const [content, setContent] = useState("")
