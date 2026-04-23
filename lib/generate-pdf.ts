@@ -11,16 +11,37 @@ export async function generateResumePDF(
   // Generate HTML from resume data
   const htmlContent = generateResumeHTML(data)
 
-  // Create a temporary container to hold the HTML
-  const container = document.createElement("div")
-  container.innerHTML = htmlContent
-  container.style.position = "absolute"
-  container.style.left = "-9999px"
-  container.style.top = "0"
-  document.body.appendChild(container)
+  // Create an iframe to isolate from page styles (prevents lab() color inheritance from Tailwind v4)
+  const iframe = document.createElement("iframe")
+  iframe.style.position = "absolute"
+  iframe.style.left = "-9999px"
+  iframe.style.top = "0"
+  iframe.style.width = "8.5in"
+  iframe.style.height = "11in"
+  iframe.style.border = "none"
+  document.body.appendChild(iframe)
 
-  // Get the actual content div (the resume container)
-  const element = container.querySelector("div") as HTMLElement
+  // Write the HTML content to the iframe
+  const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
+  if (!iframeDoc) {
+    document.body.removeChild(iframe)
+    throw new Error("Could not access iframe document")
+  }
+
+  iframeDoc.open()
+  iframeDoc.write(htmlContent)
+  iframeDoc.close()
+
+  // Wait for fonts to load
+  await new Promise((resolve) => setTimeout(resolve, 500))
+
+  // Get the actual content div (the resume container inside body > div)
+  const element = iframeDoc.body.querySelector("div") as HTMLElement
+
+  if (!element) {
+    document.body.removeChild(iframe)
+    throw new Error("Could not find resume element")
+  }
 
   // Configure pdf options to match Letter size (8.5in x 11in)
   const options = {
@@ -44,7 +65,7 @@ export async function generateResumePDF(
   try {
     await html2pdf().set(options).from(element).save()
   } finally {
-    // Clean up - remove the temporary container
-    document.body.removeChild(container)
+    // Clean up - remove the iframe
+    document.body.removeChild(iframe)
   }
 }
