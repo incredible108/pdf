@@ -53,6 +53,81 @@ Junior Developer | WebAgency | 2016 - 2018
 const STORAGE_KEY_PERSONAL = "resume_personal_info"
 const STORAGE_KEY_EDUCATION = "resume_education"
 
+const PROMPT_TEXT = `First, I will provide my template resume. Then, I will share different job descriptions one by one. For each job description, tailor my resume specifically to that role. Each tailored resume should align only with the provided job description and should not reference or relate to any others.
+
+- Tailor Conditions:
+    1. Resume Structure
+
+        Resume must have only 3 sections:
+
+        - Summary
+        - Technical Skills
+        - Professional Experience
+    2. Professional Summary
+        - Concise, professional, and clearly aligned with the job description, without subjects like "I" or "We".
+        - Include years of IT development experience from the Template Resume.
+        - Highlight experience and achievements with technical skills required in the job description.
+        - Emphasize experience with soft skills required in the job description and my Template Resume.
+        - Mention relevant industry experience from the job description with other industries from Template Resume.
+    - Up to 3-4 lines.
+    3. For Professional Experience Section:
+        - Each bullet point must align with the job description's responsibilities and required technical skills.
+        - Each sentence must be and descriptive, clearly outlining detailed responsibilities, achievements, and accomplishments, while naturally incorporating the technical skills, tools, and technologies used.
+        - Every sentence should include action verbs, technical skills, and soft skills from the job description where relevant.
+        - Each sentence should demonstrate impact, preferably with metrics, numbers (as much as possible), or measurable results (e.g., "improved system efficiency by 35%" or "reduced deployment time from 2 hours to 20 minutes").
+    - Each sentence must not be skills list sentence. They must be human readable, senior professional, outcome and achievement focused rather than what I did.
+        - Sentences must be written in a professional, Outcome and achievement focused, and results-oriented style suitable for ATS scanning and recruiter readability.
+        - Write each company's experience with real-world projects from my Template Resumes' Experience.
+        - Ensure each company's listed experience reflects its respective role.
+        - Write each  companies' experience based on job description and my Template Resume's Experience.
+        - Incorporate "nice-to-have" skills from the job description where relevant.
+        - Include soft skills from the job description, aligned with each company's role.
+        - Ensure the timeline of skills is historically accurate (e.g., FastAPI, released in December 2018, should not be included in Stripe company experience, since employment ended in Auguest 2015). Apply this logic to all skills.
+        - Use a fixed number of detailed bullets for each company:
+        - Most recent role: 9–12 bullets
+        - Next role: 7–10 bullets
+        - Roles with 4+ years tenure: 7–10 bullets
+        - Older roles: 7–8 bullets each
+    - Formatting:
+        * Bold section title (Professional Experience)
+        * Section header: job titles | company names | dates.
+        * Do not bold experience contents.
+        * No bullet characters or numbered lists in FINAL RESUME.
+        * Each bullet is a plain paragraph on its own line.
+        * Separate bullets with a blank line.
+    4. For Technical Skills Section:
+        - Must include all technical skills, programming languages, frameworks, cloud, DevOps, tools and others mentioned in the job description.
+        - Also include "nice-to-have" skills.
+        - Don't Categorize skills
+    - Bold section title (Technical Skills)
+        - All skills must be comma-separated.
+        - Include up to 60 skills if relevant.
+        - Always include my Template Resume's Technical Skills
+        - Add all related skills from both required and nice-to-have lists.
+    - Formatting:
+        * bullet character should be "-" in FINAL RESUME.
+        * Each bullet is a plain paragraph on its own line.
+        * Separate bullets with a blank line.
+- Final Requirements:
+    - Resume must achieve **100% ATS score**.
+    - No spelling, grammar, readability, or formatting errors.
+    - Never include am dash or an dash like this GPT style symbols.
+- Output
+  * First save tailored resume in draft(don't show drafted resume) and evaluate how strong tailored resume matched with JD. (ATS score, Human Review Score, Seniority Score, like ATS: X/10 Human Review: Y/10 Seniority: Z/10) - (Seniority mean which parts are look like junior like resume)
+  * Provide why ATS score is X and why Human Review score is Y and why Seniority score is Z.
+  * Detect AI written style phrases like "Proven track record of", "Results-driven professional", "Highly motivated self-starter", "Leveraged cutting-edge technologies", "Passionate about driving innovation", etc.
+  * Provide recommended fixes to increase ATS score and Human Review score and Seniority score.
+  * Then for the next step fix your recommend fixes and convert detected AI written style phrases to human style
+  * And again recommend fixes to increase ATS score, Human Review score and Seniority score, and also again detect AI written style phrases.
+  * Then for the next step fix your second recommend fixes and convert second detected AI written style phrases to human style.
+  * Repeat these steps until ATS score >= 9.5, Human Review score >= 9.3, Seniority score >=9.3
+  * After scores satisfied minimum requirements, provide again ATS score and Human Review score and Seniority score.
+  * And then provide final resume.
+
+TEMPLATE RESUME:
+
+JD:`
+
 export default function Home() {
   const [content, setContent] = useState("")
   const [resumeData, setResumeData] = useState<ResumeData | null>(null)
@@ -64,6 +139,7 @@ export default function Home() {
 
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
+  const [promptOpen, setPromptOpen] = useState(false)
 
   // Load saved data on mount
   useEffect(() => {
@@ -232,6 +308,9 @@ Job Title | Company | Duration
               <Button variant="outline" onClick={handleLoadSample}>
                 Load Sample
               </Button>
+              <Button variant="outline" onClick={() => setPromptOpen(true)}>
+                Prompt
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -399,6 +478,38 @@ Job Title | Company | Duration
             <Button onClick={handleDownloadPDF}>
               <FileDown className="h-4 w-4 mr-2" />
               Download PDF
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Prompt Modal */}
+      <Dialog open={promptOpen} onOpenChange={setPromptOpen}>
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Resume Tailoring Prompt</DialogTitle>
+            <DialogDescription>
+              Use this prompt with AI to tailor your resume for specific job descriptions
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="my-4">
+            <pre className="bg-muted p-4 rounded-lg text-sm whitespace-pre-wrap font-mono overflow-x-auto">
+              {PROMPT_TEXT}
+            </pre>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                navigator.clipboard.writeText(PROMPT_TEXT)
+              }}
+            >
+              Copy to Clipboard
+            </Button>
+            <Button onClick={() => setPromptOpen(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
