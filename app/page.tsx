@@ -13,7 +13,7 @@ import {
   type PersonalInfo,
   type Education,
 } from "@/lib/parse-resume"
-import { FileDown, FileText, AlertCircle, Settings } from "lucide-react"
+import { FileDown, FileText, AlertCircle, Settings, Plus, Trash2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -60,7 +60,7 @@ export default function Home() {
   const [isGenerating, setIsGenerating] = useState(false)
 
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>(DEFAULT_PERSONAL_INFO)
-  const [education, setEducation] = useState<Education>(DEFAULT_EDUCATION)
+  const [education, setEducation] = useState<Education[]>(DEFAULT_EDUCATION)
 
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
@@ -80,7 +80,14 @@ export default function Home() {
 
     if (savedEducation) {
       try {
-        setEducation(JSON.parse(savedEducation))
+        const parsed = JSON.parse(savedEducation)
+        // Handle migration from old object format to new array format
+        if (Array.isArray(parsed)) {
+          setEducation(parsed)
+        } else if (parsed && typeof parsed === "object" && parsed.degree) {
+          // Old format was a single object, convert to array
+          setEducation([parsed])
+        }
       } catch {
         // ignore parse errors
       }
@@ -91,6 +98,24 @@ export default function Home() {
     localStorage.setItem(STORAGE_KEY_PERSONAL, JSON.stringify(personalInfo))
     localStorage.setItem(STORAGE_KEY_EDUCATION, JSON.stringify(education))
     setSettingsOpen(false)
+  }
+
+  const handleAddEducation = () => {
+    if (education.length < 2) {
+      setEducation([...education, { degree: "", school: "", year: "" }])
+    }
+  }
+
+  const handleRemoveEducation = (index: number) => {
+    if (education.length > 1) {
+      setEducation(education.filter((_, i) => i !== index))
+    }
+  }
+
+  const handleUpdateEducation = (index: number, field: keyof Education, value: string) => {
+    const updated = [...education]
+    updated[index] = { ...updated[index], [field]: value }
+    setEducation(updated)
   }
 
   const handleGenerate = () => {
@@ -281,32 +306,62 @@ Job Title | Company | Duration
 
             {/* Education */}
             <div>
-              <h3 className="text-sm font-medium mb-3">Education</h3>
-              <FieldGroup>
-                <Field>
-                  <FieldLabel>Degree</FieldLabel>
-                  <Input
-                    value={education.degree}
-                    onChange={(e) => setEducation({ ...education, degree: e.target.value })}
-                  />
-                </Field>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <Field>
-                    <FieldLabel>School</FieldLabel>
-                    <Input
-                      value={education.school}
-                      onChange={(e) => setEducation({ ...education, school: e.target.value })}
-                    />
-                  </Field>
-                  <Field>
-                    <FieldLabel>Year</FieldLabel>
-                    <Input
-                      value={education.year}
-                      onChange={(e) => setEducation({ ...education, year: e.target.value })}
-                    />
-                  </Field>
-                </div>
-              </FieldGroup>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium">Education</h3>
+                {education.length < 2 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddEducation}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add
+                  </Button>
+                )}
+              </div>
+              <div className="space-y-4">
+                {education.map((edu, index) => (
+                  <div key={index} className="relative border rounded-lg p-4">
+                    {education.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => handleRemoveEducation(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <FieldGroup>
+                      <Field>
+                        <FieldLabel>Degree</FieldLabel>
+                        <Input
+                          value={edu.degree}
+                          onChange={(e) => handleUpdateEducation(index, "degree", e.target.value)}
+                        />
+                      </Field>
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <Field>
+                          <FieldLabel>School</FieldLabel>
+                          <Input
+                            value={edu.school}
+                            onChange={(e) => handleUpdateEducation(index, "school", e.target.value)}
+                          />
+                        </Field>
+                        <Field>
+                          <FieldLabel>Year</FieldLabel>
+                          <Input
+                            value={edu.year}
+                            onChange={(e) => handleUpdateEducation(index, "year", e.target.value)}
+                          />
+                        </Field>
+                      </div>
+                    </FieldGroup>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 

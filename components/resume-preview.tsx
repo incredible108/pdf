@@ -97,12 +97,16 @@ export function ResumePreview({ data }: ResumePreviewProps) {
         <h2 className="text-lg font-bold uppercase tracking-wider border-b border-gray-300 pb-1 mb-3">
           Education
         </h2>
-        <div className="flex justify-between items-start flex-wrap gap-1">
-          <div>
-            <h3 className="font-bold text-base">{education.degree}</h3>
-            <p className="text-sm text-gray-600 italic">{education.school}</p>
-          </div>
-          <span className="text-sm text-gray-600">{education.year}</span>
+        <div className="space-y-3">
+          {education.map((edu, index) => (
+            <div key={index} className="flex justify-between items-start flex-wrap gap-1">
+              <div>
+                <h3 className="font-bold text-base">{edu.degree}</h3>
+                <p className="text-sm text-gray-600 italic">{edu.school}</p>
+              </div>
+              <span className="text-sm text-gray-600">{edu.year}</span>
+            </div>
+          ))}
         </div>
       </section>
     </div>
