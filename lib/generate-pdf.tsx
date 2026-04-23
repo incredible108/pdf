@@ -209,13 +209,15 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
         {/* Education */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Education</Text>
-          <View style={styles.educationHeader}>
-            <View>
-              <Text style={styles.educationDegree}>{education.degree}</Text>
-              <Text style={styles.educationSchool}>{education.school}</Text>
+          {education.map((edu, index) => (
+            <View key={index} style={[styles.educationHeader, index > 0 && { marginTop: 8 }]}>
+              <View>
+                <Text style={styles.educationDegree}>{edu.degree}</Text>
+                <Text style={styles.educationSchool}>{edu.school}</Text>
+              </View>
+              <Text style={styles.educationYear}>{edu.year}</Text>
             </View>
-            <Text style={styles.educationYear}>{education.year}</Text>
-          </View>
+          ))}
         </View>
       </Page>
     </Document>

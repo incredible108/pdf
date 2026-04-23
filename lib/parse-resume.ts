@@ -1,3 +1,9 @@
+export interface Education {
+  degree: string
+  school: string
+  year: string
+}
+
 export interface ResumeData {
   personalInfo: {
     fullName: string
@@ -6,11 +12,7 @@ export interface ResumeData {
     email: string
     location: string
   }
-  education: {
-    degree: string
-    school: string
-    year: string
-  }
+  education: Education[]
   summary: string
   technicalSkills: string[]
   professionalExperience: {
@@ -29,11 +31,13 @@ export const DEFAULT_PERSONAL_INFO = {
   location: "San Francisco, CA",
 }
 
-export const DEFAULT_EDUCATION = {
-  degree: "Bachelor of Science in Computer Science",
-  school: "University of California, Berkeley",
-  year: "2018",
-}
+export const DEFAULT_EDUCATION: Education[] = [
+  {
+    degree: "Bachelor of Science in Computer Science",
+    school: "University of California, Berkeley",
+    year: "2018",
+  },
+]
 
 export function parseResumeContent(content: string): Partial<ResumeData> {
   const sections: Partial<ResumeData> = {
