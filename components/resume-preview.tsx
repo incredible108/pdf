@@ -26,6 +26,12 @@ export function ResumePreview({ data }: ResumePreviewProps) {
           <span>{personalInfo.email}</span>
           <span className="hidden sm:inline">|</span>
           <span>{personalInfo.location}</span>
+          {personalInfo.linkedin && (
+            <>
+              <span className="hidden sm:inline">|</span>
+              <span>{personalInfo.linkedin}</span>
+            </>
+          )}
         </div>
       </header>
 
