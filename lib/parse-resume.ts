@@ -4,14 +4,17 @@ export interface Education {
   year: string
 }
 
+export type PersonalInfo = {
+  fullName: string
+  jobTitle: string
+  phone: string
+  email: string
+  location: string
+  linkedin: string
+}
+
 export interface ResumeData {
-  personalInfo: {
-    fullName: string
-    jobTitle: string
-    phone: string
-    email: string
-    location: string
-  }
+  personalInfo: PersonalInfo
   education: Education[]
   summary: string
   technicalSkills: string[]
@@ -23,12 +26,13 @@ export interface ResumeData {
   }[]
 }
 
-export const DEFAULT_PERSONAL_INFO = {
+export const DEFAULT_PERSONAL_INFO: PersonalInfo = {
   fullName: "John Doe",
   jobTitle: "Senior Software Engineer",
   phone: "(555) 123-4567",
   email: "john.doe@email.com",
   location: "San Francisco, CA",
+  linkedin: "linkedin.com/in/johndoe",
 }
 
 export const DEFAULT_EDUCATION: Education[] = [

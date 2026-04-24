@@ -13,7 +13,7 @@ import {
   type PersonalInfo,
   type Education,
 } from "@/lib/parse-resume"
-import { FileDown, FileText, AlertCircle, Settings, Plus, Trash2 } from "lucide-react"
+import { FileDown, FileText, AlertCircle, Settings, Plus, Trash2, Briefcase } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -26,32 +26,25 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 
-const SAMPLE_CONTENT = `Summary
-Results-driven Senior Software Engineer with 8+ years of experience building scalable web applications and leading cross-functional teams. Passionate about clean code, system design, and mentoring junior developers.
+const SAMPLE_JOB_DESCRIPTION = `Senior Software Engineer
 
-Technical Skills
-JavaScript, TypeScript, React, Next.js, Node.js, Python, PostgreSQL, MongoDB, AWS, Docker, Kubernetes, GraphQL, REST APIs, Git, CI/CD
+We are looking for a Senior Software Engineer to join our team. You will be responsible for building scalable web applications and leading cross-functional teams.
 
-Professional Experience
-Senior Software Engineer | TechCorp Inc. | 2021 - Present
-- Led development of a real-time analytics dashboard serving 100K+ daily users
-- Architected microservices infrastructure reducing system latency by 40%
-- Mentored team of 5 junior developers through code reviews and pair programming
-- Implemented CI/CD pipelines reducing deployment time from 2 hours to 15 minutes
+Requirements:
+- 5+ years of experience with JavaScript, TypeScript, React, and Node.js
+- Experience with cloud platforms (AWS, GCP, or Azure)
+- Strong understanding of system design and architecture
+- Experience with databases (PostgreSQL, MongoDB)
+- Excellent communication and leadership skills
 
-Software Engineer | StartupXYZ | 2018 - 2021
-- Built core features for SaaS platform using React and Node.js
-- Designed and implemented RESTful APIs handling 1M+ requests daily
-- Collaborated with product team to deliver features 20% ahead of schedule
-- Reduced application bundle size by 35% through code splitting and optimization
-
-Junior Developer | WebAgency | 2016 - 2018
-- Developed responsive websites for 50+ clients using modern web technologies
-- Created reusable component library adopted across multiple projects
-- Participated in agile ceremonies and contributed to sprint planning`
+Nice to have:
+- Experience with Kubernetes and Docker
+- GraphQL experience
+- CI/CD pipeline experience`
 
 const STORAGE_KEY_PERSONAL = "resume_personal_info"
 const STORAGE_KEY_EDUCATION = "resume_education"
+const STORAGE_KEY_TEMPLATE_RESUME = "resume_template_content"
 
 const PROMPT_TEXT = `First, I will provide my template resume. Then, I will share different job descriptions one by one. For each job description, tailor my resume specifically to that role. Each tailored resume should align only with the provided job description and should not reference or relate to any others.
 
@@ -129,13 +122,14 @@ TEMPLATE RESUME:
 JD:`
 
 export default function Home() {
-  const [content, setContent] = useState("")
+  const [jobDescription, setJobDescription] = useState("")
   const [resumeData, setResumeData] = useState<ResumeData | null>(null)
   const [error, setError] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
 
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>(DEFAULT_PERSONAL_INFO)
   const [education, setEducation] = useState<Education[]>(DEFAULT_EDUCATION)
+  const [templateResume, setTemplateResume] = useState("")
 
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
@@ -145,6 +139,7 @@ export default function Home() {
   useEffect(() => {
     const savedPersonal = localStorage.getItem(STORAGE_KEY_PERSONAL)
     const savedEducation = localStorage.getItem(STORAGE_KEY_EDUCATION)
+    const savedTemplate = localStorage.getItem(STORAGE_KEY_TEMPLATE_RESUME)
 
     if (savedPersonal) {
       try {
@@ -168,11 +163,16 @@ export default function Home() {
         // ignore parse errors
       }
     }
+
+    if (savedTemplate) {
+      setTemplateResume(savedTemplate)
+    }
   }, [])
 
   const handleSaveSettings = () => {
     localStorage.setItem(STORAGE_KEY_PERSONAL, JSON.stringify(personalInfo))
     localStorage.setItem(STORAGE_KEY_EDUCATION, JSON.stringify(education))
+    localStorage.setItem(STORAGE_KEY_TEMPLATE_RESUME, templateResume)
     setSettingsOpen(false)
   }
 
@@ -194,28 +194,63 @@ export default function Home() {
     setEducation(updated)
   }
 
-  const handleGenerate = () => {
-    if (!content.trim()) {
-      setError("Please enter your resume content")
+  const handleGenerate = async () => {
+    if (!jobDescription.trim()) {
+      setError("Please enter a job description")
+      return
+    }
+
+    if (!templateResume.trim()) {
+      setError("Please add your template resume in Settings first")
       return
     }
 
     setError("")
     setIsGenerating(true)
 
-    const parsed = parseResumeContent(content)
+    try {
+      // Build the full prompt
+      const fullPrompt = `${PROMPT_TEXT.replace("TEMPLATE RESUME:", `TEMPLATE RESUME:\n${templateResume}`).replace("JD:", `JD:\n${jobDescription}`)}`
 
-    const fullResumeData: ResumeData = {
-      personalInfo,
-      education,
-      summary: parsed.summary || "",
-      technicalSkills: parsed.technicalSkills || [],
-      professionalExperience: parsed.professionalExperience || [],
+      // Call the Python backend
+      const response = await fetch("http://127.0.0.1:8000/scrape-qwen", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prompt: fullPrompt }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Backend error: ${response.status}`)
+      }
+
+      const data = await response.json()
+      const generatedContent = data.response || data.text || data.result || ""
+
+      if (!generatedContent) {
+        throw new Error("No response received from backend")
+      }
+
+      // Parse the generated resume content
+      const parsed = parseResumeContent(generatedContent)
+
+      const fullResumeData: ResumeData = {
+        personalInfo,
+        education,
+        summary: parsed.summary || "",
+        technicalSkills: parsed.technicalSkills || [],
+        professionalExperience: parsed.professionalExperience || [],
+      }
+
+      setResumeData(fullResumeData)
+      setPreviewOpen(true)
+    } catch (err) {
+      console.error("Generation error:", err)
+      setError(err instanceof Error ? err.message : "Failed to generate resume. Please check if the backend is running.")
+    } finally {
+      setIsGenerating(false)
     }
-
-    setResumeData(fullResumeData)
-    setIsGenerating(false)
-    setPreviewOpen(true)
   }
 
   const handleDownloadPDF = async () => {
@@ -232,7 +267,7 @@ export default function Home() {
   }
 
   const handleLoadSample = () => {
-    setContent(SAMPLE_CONTENT)
+    setJobDescription(SAMPLE_JOB_DESCRIPTION)
     setError("")
   }
 
@@ -255,41 +290,39 @@ export default function Home() {
               PDF Resume Generator
             </h1>
             <p className="text-muted-foreground">
-              Paste your resume content and generate a professional PDF
+              Enter a job description to generate a tailored resume
             </p>
           </div>
 
           <div className="w-10" /> {/* Spacer for alignment */}
         </div>
 
-        {/* Resume Content Input */}
+        {/* Job Description Input */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Resume Content
+              <Briefcase className="h-5 w-5" />
+              Job Description
             </CardTitle>
             <CardDescription>
-              Paste your Summary, Technical Skills, and Professional Experience below.
-              Click the settings button to edit personal info and education.
+              Paste the job description below. Make sure to add your template resume in Settings first.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Textarea
-              placeholder={`Summary
-Your professional summary here...
+              placeholder={`Paste the job description here...
 
-Technical Skills
-JavaScript, React, Node.js, etc...
-
-Professional Experience
-Job Title | Company | Duration
-- Achievement 1
-- Achievement 2`}
+Example:
+Senior Software Engineer
+Requirements:
+- 5+ years of experience with JavaScript, React, Node.js
+- Experience with cloud platforms (AWS, GCP)
+- Strong system design skills
+...`}
               className="min-h-[400px] font-mono text-sm"
-              value={content}
+              value={jobDescription}
               onChange={(e) => {
-                setContent(e.target.value)
+                setJobDescription(e.target.value)
                 setError("")
               }}
             />
@@ -316,17 +349,41 @@ Job Title | Company | Duration
         </Card>
       </div>
 
-      {/* Settings Modal */}
+      {/* Settings Modal - Now includes full resume template */}
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Personal Information & Education</DialogTitle>
+            <DialogTitle>Resume Template & Settings</DialogTitle>
             <DialogDescription>
-              Update your contact details and education. This info will be saved for future use.
+              Enter your full template resume content, personal info, and education. This will be saved for future use.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
+            {/* Template Resume Content */}
+            <div>
+              <h3 className="text-sm font-medium mb-3">Template Resume Content</h3>
+              <p className="text-xs text-muted-foreground mb-2">
+                Include your Summary, Technical Skills, and Professional Experience. This will be used to tailor your resume.
+              </p>
+              <Textarea
+                placeholder={`Summary
+Results-driven Senior Software Engineer with 8+ years of experience...
+
+Technical Skills
+JavaScript, TypeScript, React, Next.js, Node.js, Python, PostgreSQL...
+
+Professional Experience
+Senior Software Engineer | TechCorp Inc. | 2021 - Present
+- Led development of a real-time analytics dashboard serving 100K+ daily users
+- Architected microservices infrastructure reducing system latency by 40%
+...`}
+                className="min-h-[300px] font-mono text-sm"
+                value={templateResume}
+                onChange={(e) => setTemplateResume(e.target.value)}
+              />
+            </div>
+
             {/* Personal Information */}
             <div>
               <h3 className="text-sm font-medium mb-3">Contact Details</h3>
@@ -461,7 +518,7 @@ Job Title | Company | Duration
           <DialogHeader>
             <DialogTitle>Resume Preview</DialogTitle>
             <DialogDescription>
-              Review your resume before downloading
+              Review your tailored resume before downloading
             </DialogDescription>
           </DialogHeader>
 
@@ -489,7 +546,7 @@ Job Title | Company | Duration
           <DialogHeader>
             <DialogTitle>Resume Tailoring Prompt</DialogTitle>
             <DialogDescription>
-              Use this prompt with AI to tailor your resume for specific job descriptions
+              This is the prompt used to tailor your resume for job descriptions
             </DialogDescription>
           </DialogHeader>
 
