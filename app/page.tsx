@@ -26,32 +26,9 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 
-const SAMPLE_CONTENT = `Summary
-Results-driven Senior Software Engineer with 8+ years of experience building scalable web applications and leading cross-functional teams. Passionate about clean code, system design, and mentoring junior developers.
-
-Technical Skills
-JavaScript, TypeScript, React, Next.js, Node.js, Python, PostgreSQL, MongoDB, AWS, Docker, Kubernetes, GraphQL, REST APIs, Git, CI/CD
-
-Professional Experience
-Senior Software Engineer | TechCorp Inc. | 2021 - Present
-- Led development of a real-time analytics dashboard serving 100K+ daily users
-- Architected microservices infrastructure reducing system latency by 40%
-- Mentored team of 5 junior developers through code reviews and pair programming
-- Implemented CI/CD pipelines reducing deployment time from 2 hours to 15 minutes
-
-Software Engineer | StartupXYZ | 2018 - 2021
-- Built core features for SaaS platform using React and Node.js
-- Designed and implemented RESTful APIs handling 1M+ requests daily
-- Collaborated with product team to deliver features 20% ahead of schedule
-- Reduced application bundle size by 35% through code splitting and optimization
-
-Junior Developer | WebAgency | 2016 - 2018
-- Developed responsive websites for 50+ clients using modern web technologies
-- Created reusable component library adopted across multiple projects
-- Participated in agile ceremonies and contributed to sprint planning`
-
 const STORAGE_KEY_PERSONAL = "resume_personal_info"
 const STORAGE_KEY_EDUCATION = "resume_education"
+const STORAGE_KEY_TEMPLATE = "resume_template"
 
 const PROMPT_TEXT = `First, I will provide my template resume. Then, I will share different job descriptions one by one. For each job description, tailor my resume specifically to that role. Each tailored resume should align only with the provided job description and should not reference or relate to any others.
 
@@ -124,12 +101,11 @@ const PROMPT_TEXT = `First, I will provide my template resume. Then, I will shar
   * After scores satisfied minimum requirements, provide again ATS score and Human Review score and Seniority score.
   * And then provide final resume.
 
-TEMPLATE RESUME:
-
-JD:`
+TEMPLATE RESUME:`
 
 export default function Home() {
-  const [content, setContent] = useState("")
+  const [jobDescription, setJobDescription] = useState("")
+  const [templateResume, setTemplateResume] = useState("")
   const [resumeData, setResumeData] = useState<ResumeData | null>(null)
   const [error, setError] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
@@ -145,6 +121,7 @@ export default function Home() {
   useEffect(() => {
     const savedPersonal = localStorage.getItem(STORAGE_KEY_PERSONAL)
     const savedEducation = localStorage.getItem(STORAGE_KEY_EDUCATION)
+    const savedTemplate = localStorage.getItem(STORAGE_KEY_TEMPLATE)
 
     if (savedPersonal) {
       try {
@@ -168,11 +145,16 @@ export default function Home() {
         // ignore parse errors
       }
     }
+
+    if (savedTemplate) {
+      setTemplateResume(savedTemplate)
+    }
   }, [])
 
   const handleSaveSettings = () => {
     localStorage.setItem(STORAGE_KEY_PERSONAL, JSON.stringify(personalInfo))
     localStorage.setItem(STORAGE_KEY_EDUCATION, JSON.stringify(education))
+    localStorage.setItem(STORAGE_KEY_TEMPLATE, templateResume)
     setSettingsOpen(false)
   }
 
@@ -194,28 +176,64 @@ export default function Home() {
     setEducation(updated)
   }
 
-  const handleGenerate = () => {
-    if (!content.trim()) {
-      setError("Please enter your resume content")
+  const handleGenerate = async () => {
+    if (!jobDescription.trim()) {
+      setError("Please enter a job description")
+      return
+    }
+
+    if (!templateResume.trim()) {
+      setError("Please enter your template resume in Settings")
       return
     }
 
     setError("")
     setIsGenerating(true)
 
-    const parsed = parseResumeContent(content)
+    try {
+      // Build the full prompt
+      const fullPrompt = `${PROMPT_TEXT}
 
-    const fullResumeData: ResumeData = {
-      personalInfo,
-      education,
-      summary: parsed.summary || "",
-      technicalSkills: parsed.technicalSkills || [],
-      professionalExperience: parsed.professionalExperience || [],
+${templateResume}
+
+JD:
+${jobDescription}`
+
+      // Call Python backend
+      const response = await fetch("http://127.0.0.1:8000/scrape-qwen", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prompt: fullPrompt }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Backend error: ${response.status}`)
+      }
+
+      const data = await response.json()
+      const responseText = data.response || data.text || data.content || ""
+
+      // Parse the response text into resume data
+      const parsed = parseResumeContent(responseText)
+
+      const fullResumeData: ResumeData = {
+        personalInfo,
+        education,
+        summary: parsed.summary || "",
+        technicalSkills: parsed.technicalSkills || [],
+        professionalExperience: parsed.professionalExperience || [],
+      }
+
+      setResumeData(fullResumeData)
+      setPreviewOpen(true)
+    } catch (err) {
+      console.error("Generation error:", err)
+      setError(err instanceof Error ? err.message : "Failed to generate resume. Make sure the Python backend is running.")
+    } finally {
+      setIsGenerating(false)
     }
-
-    setResumeData(fullResumeData)
-    setIsGenerating(false)
-    setPreviewOpen(true)
   }
 
   const handleDownloadPDF = async () => {
@@ -229,11 +247,6 @@ export default function Home() {
       console.error("PDF generation error:", error)
       setError("Failed to generate PDF. Please try again.")
     }
-  }
-
-  const handleLoadSample = () => {
-    setContent(SAMPLE_CONTENT)
-    setError("")
   }
 
   return (
@@ -262,34 +275,31 @@ export default function Home() {
           <div className="w-10" /> {/* Spacer for alignment */}
         </div>
 
-        {/* Resume Content Input */}
+        {/* Job Description Input */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Resume Content
+              Job Description
             </CardTitle>
             <CardDescription>
-              Paste your Summary, Technical Skills, and Professional Experience below.
-              Click the settings button to edit personal info and education.
+              Paste the job description below. Your template resume can be configured in Settings.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Textarea
-              placeholder={`Summary
-Your professional summary here...
+              placeholder={`Paste the job description here...
 
-Technical Skills
-JavaScript, React, Node.js, etc...
-
-Professional Experience
-Job Title | Company | Duration
-- Achievement 1
-- Achievement 2`}
+Example:
+We are looking for a Senior Software Engineer with experience in:
+- React, TypeScript, Node.js
+- Cloud services (AWS/GCP)
+- CI/CD pipelines
+...`}
               className="min-h-[400px] font-mono text-sm"
-              value={content}
+              value={jobDescription}
               onChange={(e) => {
-                setContent(e.target.value)
+                setJobDescription(e.target.value)
                 setError("")
               }}
             />
@@ -305,9 +315,6 @@ Job Title | Company | Duration
               <Button onClick={handleGenerate} disabled={isGenerating}>
                 {isGenerating ? "Generating..." : "Generate Resume"}
               </Button>
-              <Button variant="outline" onClick={handleLoadSample}>
-                Load Sample
-              </Button>
               <Button variant="outline" onClick={() => setPromptOpen(true)}>
                 Prompt
               </Button>
@@ -318,15 +325,37 @@ Job Title | Company | Duration
 
       {/* Settings Modal */}
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Personal Information & Education</DialogTitle>
+            <DialogTitle>Resume Settings</DialogTitle>
             <DialogDescription>
-              Update your contact details and education. This info will be saved for future use.
+              Configure your template resume, contact details, and education. This info will be saved for future use.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
+            {/* Template Resume */}
+            <div>
+              <h3 className="text-sm font-medium mb-3">Template Resume</h3>
+              <Textarea
+                placeholder={`Paste your full template resume here...
+
+Summary
+Your professional summary here...
+
+Technical Skills
+JavaScript, React, Node.js, etc...
+
+Professional Experience
+Job Title | Company | Duration
+- Achievement 1
+- Achievement 2`}
+                className="min-h-[300px] font-mono text-sm"
+                value={templateResume}
+                onChange={(e) => setTemplateResume(e.target.value)}
+              />
+            </div>
+
             {/* Personal Information */}
             <div>
               <h3 className="text-sm font-medium mb-3">Contact Details</h3>
