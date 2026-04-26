@@ -213,7 +213,7 @@ export default function Home() {
       const fullPrompt = `${PROMPT_TEXT.replace("TEMPLATE RESUME:", `TEMPLATE RESUME:\n${templateResume}`).replace("JD:", `JD:\n${jobDescription}`)}`
 
       // Call the Python backend
-      const response = await fetch("http://127.0.0.1:8000/scrape-qwen", {
+      const response = await fetch("https://pdf-backend-495j.onrender.com/scrape-qwen", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -226,7 +226,8 @@ export default function Home() {
       }
 
       const data = await response.json()
-      const generatedContent = data.response || data.text || data.result || ""
+      console.log("Raw response from backend:", data)
+      const generatedContent = data.tailored_resume || data.text || data.result || ""
 
       if (!generatedContent) {
         throw new Error("No response received from backend")
