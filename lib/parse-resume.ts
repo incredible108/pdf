@@ -44,6 +44,24 @@ export const DEFAULT_EDUCATION: Education[] = [
   },
 ]
 
+/**
+ * Converts date format from MM/YYYY to Mon YYYY
+ */
+function formatDuration(duration: string): string {
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  ]
+
+  return duration.replace(/(\d{2})\/(\d{4})/g, (_, month, year) => {
+    const monthIndex = parseInt(month, 10) - 1
+    if (monthIndex >= 0 && monthIndex < 12) {
+      return `${months[monthIndex]} ${year}`
+    }
+    return `${month}/${year}`
+  })
+}
+
 export function parseResumeContent(content: string): Partial<ResumeData> {
   const sections: Partial<ResumeData> = {
     title: "",
@@ -54,22 +72,19 @@ export function parseResumeContent(content: string): Partial<ResumeData> {
 
   // Normalize line breaks
   const normalizedContent = content.replace(/\r\n/g, "\n")
-
-  // Split content into sections
-  const sectionRegex = /^(summary|technical skills|professional experience)[:]*\s*$/im
   const lines = normalizedContent.split("\n")
 
   let currentSection = ""
   let currentContent: string[] = []
-  let currentExperience: {
-    role: string
-    company: string
-    duration: string
-    bullets: string[]
-  } | null = null
 
   for (const line of lines) {
     const trimmedLine = line.trim()
+
+    // Parse "Title:" line (backend format)
+    if (trimmedLine.startsWith("Title:")) {
+      sections.title = trimmedLine.replace("Title:", "").trim()
+      continue
+    }
 
     // Check if this line is a section header
     const sectionMatch = trimmedLine.toLowerCase()
@@ -77,22 +92,38 @@ export function parseResumeContent(content: string): Partial<ResumeData> {
       sectionMatch === "summary" ||
       sectionMatch === "summary:" ||
       sectionMatch === "professional summary" ||
-      sectionMatch === "professional summary:"
+      sectionMatch === "professional summary:" ||
+      trimmedLine.startsWith("Professional Summary:")
     ) {
       // Save previous section
       saveSection()
       currentSection = "summary"
       currentContent = []
+      // Handle inline content after "Professional Summary:"
+      if (trimmedLine.startsWith("Professional Summary:")) {
+        const inlineContent = trimmedLine.replace("Professional Summary:", "").trim()
+        if (inlineContent) {
+          currentContent.push(inlineContent)
+        }
+      }
       continue
     } else if (
       sectionMatch === "technical skills" ||
       sectionMatch === "technical skills:" ||
       sectionMatch === "skills" ||
-      sectionMatch === "skills:"
+      sectionMatch === "skills:" ||
+      trimmedLine.startsWith("Skills:")
     ) {
       saveSection()
       currentSection = "skills"
       currentContent = []
+      // Handle inline content after "Skills:"
+      if (trimmedLine.startsWith("Skills:")) {
+        const inlineContent = trimmedLine.replace("Skills:", "").trim()
+        if (inlineContent) {
+          currentContent.push(inlineContent)
+        }
+      }
       continue
     } else if (
       sectionMatch === "professional experience" ||
@@ -100,12 +131,12 @@ export function parseResumeContent(content: string): Partial<ResumeData> {
       sectionMatch === "experience" ||
       sectionMatch === "experience:" ||
       sectionMatch === "work experience" ||
-      sectionMatch === "work experience:"
+      sectionMatch === "work experience:" ||
+      trimmedLine.startsWith("Work Experience:")
     ) {
       saveSection()
       currentSection = "experience"
       currentContent = []
-      currentExperience = null
       continue
     }
 
@@ -126,7 +157,7 @@ export function parseResumeContent(content: string): Partial<ResumeData> {
 
       for (const line of currentContent) {
         // Split by common delimiters (comma, bullet, pipe)
-        const parts = line.split(/[,•|\u2022]/)
+        const parts = line.split(/[,•\u2022]/)
 
         for (let part of parts) {
           part = part.trim()
@@ -160,16 +191,32 @@ function parseExperience(
     bullets: string[]
   } | null = null
 
+  // Backend format pattern: Company | Location | Role | MM/YYYY - MM/YYYY (or Present)
+  const backendJobPattern = /^(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(\d{2}\/\d{4}\s*-\s*(?:\d{2}\/\d{4}|Present))$/i
+
   // Date pattern: "Month Year - Month Year" or "Month Year - Present"
   // Examples: "Mar 2020 - Feb 2026", "Nov 2017 - Present"
   const datePattern = /([A-Z][a-z]+\s+\d{4})\s*[-–]\s*(Present|Current|[A-Z][a-z]+\s+\d{4})/i
-
 
   for (const line of lines) {
     const trimmedLine = line.trim()
     if (!trimmedLine || trimmedLine === '|') continue
 
-    // Support pipe-separated job lines: Role | Company | Period
+    // Check for backend format: Company | Location | Role | MM/YYYY - MM/YYYY
+    const backendMatch = trimmedLine.match(backendJobPattern)
+    if (backendMatch) {
+      if (current) experiences.push(current)
+      const [, company, location, role, duration] = backendMatch
+      current = {
+        role: role.trim(),
+        company: `${company.trim()}, ${location.trim()}`,
+        duration: formatDuration(duration.trim()),
+        bullets: []
+      }
+      continue
+    }
+
+    // Support simple pipe-separated job lines: Role | Company | Period
     if (trimmedLine.includes('|')) {
       const parts = trimmedLine.split('|').map(s => s.trim()).filter(Boolean)
       if (parts.length === 3) {
