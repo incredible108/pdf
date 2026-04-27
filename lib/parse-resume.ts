@@ -191,22 +191,54 @@ function parseExperience(
     bullets: string[]
   } | null = null
 
-  // Backend format pattern: Company | Role | MM/YYYY - MM/YYYY (or Present)
-const backendJobPattern = /^(.+?)\s*\|\s*(.+?)\s*\|\s*(\d{2}\/\d{4}\s*-\s*(?:\d{2}\/\d{4}|Present))$/i
+  // Patterns for various formats
+  // 1. Company | Role | MM/YYYY - MM/YYYY
+  const pipePattern = /^(.+?)\s*\|\s*(.+?)\s*\|\s*(\d{2}\/\d{4}\s*-\s*(?:\d{2}\/\d{4}|Present|Current))$/i
+  // 2. Company | Role, MM/YYYY - MM/YYYY
+  const pipeCommaPattern = /^(.+?)\s*\|\s*(.+?),\s*(\d{2}\/\d{4}\s*-\s*(?:\d{2}\/\d{4}|Present|Current))$/i
+  // 3. Company, Role, MM/YYYY - MM/YYYY
+  const commaPattern = /^(.+?),\s*(.+?),\s*(\d{2}\/\d{4}\s*-\s*(?:\d{2}\/\d{4}|Present|Current))$/i
 
   // Date pattern: "Month Year - Month Year" or "Month Year - Present"
-  // Examples: "Mar 2020 - Feb 2026", "Nov 2017 - Present"
   const datePattern = /([A-Z][a-z]+\s+\d{4})\s*[-–]\s*(Present|Current|[A-Z][a-z]+\s+\d{4})/i
 
   for (const line of lines) {
     const trimmedLine = line.trim()
     if (!trimmedLine || trimmedLine === '|') continue
 
-    // Check for backend format: Company | Role | MM/YYYY - MM/YYYY
-    const backendMatch = trimmedLine.match(backendJobPattern)
-    if (backendMatch) {
+    // 1. Company | Role | MM/YYYY - MM/YYYY
+    let m = trimmedLine.match(pipePattern)
+    if (m) {
       if (current) experiences.push(current)
-      const [, company, role, duration] = backendMatch
+      const [, company, role, duration] = m
+      current = {
+        role: role.trim(),
+        company: company.trim(),
+        duration: formatDuration(duration.trim()),
+        bullets: []
+      }
+      continue
+    }
+
+    // 2. Company | Role, MM/YYYY - MM/YYYY
+    m = trimmedLine.match(pipeCommaPattern)
+    if (m) {
+      if (current) experiences.push(current)
+      const [, company, role, duration] = m
+      current = {
+        role: role.trim(),
+        company: company.trim(),
+        duration: formatDuration(duration.trim()),
+        bullets: []
+      }
+      continue
+    }
+
+    // 3. Company, Role, MM/YYYY - MM/YYYY
+    m = trimmedLine.match(commaPattern)
+    if (m) {
+      if (current) experiences.push(current)
+      const [, company, role, duration] = m
       current = {
         role: role.trim(),
         company: company.trim(),
@@ -221,16 +253,44 @@ const backendJobPattern = /^(.+?)\s*\|\s*(.+?)\s*\|\s*(\d{2}\/\d{4}\s*-\s*(?:\d{
       const parts = trimmedLine.split('|').map(s => s.trim()).filter(Boolean)
       if (parts.length === 3) {
         if (current) experiences.push(current)
+        // Try to guess which part is company/role/duration
+        // If last part matches MM/YYYY - MM/YYYY, treat as duration
+        if (/\d{2}\/\d{4}\s*-\s*(\d{2}\/\d{4}|Present|Current)/.test(parts[2])) {
+          current = {
+            company: parts[0],
+            role: parts[1],
+            duration: formatDuration(parts[2]),
+            bullets: []
+          }
+        } else {
+          // fallback: role, company, duration
+          current = {
+            role: parts[0],
+            company: parts[1],
+            duration: parts[2],
+            bullets: []
+          }
+        }
+        continue
+      }
+    }
+
+    // Support comma-separated job lines: Company, Role, Period
+    if (trimmedLine.split(',').length === 3) {
+      const parts = trimmedLine.split(',').map(s => s.trim())
+      if (/\d{2}\/\d{4}\s*-\s*(\d{2}\/\d{4}|Present|Current)/.test(parts[2])) {
+        if (current) experiences.push(current)
         current = {
-          role: parts[0],
-          company: parts[1],
-          duration: parts[2],
+          company: parts[0],
+          role: parts[1],
+          duration: formatDuration(parts[2]),
           bullets: []
         }
         continue
       }
     }
 
+    // Fallback: detect date at end
     const dateMatch = trimmedLine.match(datePattern)
     const isJobHeader = dateMatch && dateMatch.index !== undefined && dateMatch.index > 0
 
