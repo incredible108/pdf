@@ -154,9 +154,9 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
 
   return (
     <Document>
-      <Page size="LETTER" style={styles.page} wrap>
+      <Page size="LETTER" style={styles.page}>
         {/* Header */}
-        <View style={styles.header} wrap={false}>
+        <View style={styles.header}>
           <Text style={styles.name}>{personalInfo.fullName}</Text>
           <Text style={styles.jobTitle}>{personalInfo.jobTitle}</Text>
           <View style={styles.contactRow}>
@@ -171,7 +171,7 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
 
         {/* Professional Summary */}
         {summary && summary.trim() !== "" && (
-          <View style={styles.section} wrap={false}>
+          <View style={styles.section}>
             <Text style={styles.sectionTitle}>Professional Summary</Text>
             <Text style={styles.summaryText}>{summary}</Text>
           </View>
@@ -179,7 +179,7 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
 
         {/* Technical Skills */}
         {cleanedSkills.length > 0 && (
-          <View style={styles.section} wrap={false}>
+          <View style={styles.section}>
             <Text style={styles.sectionTitle}>Technical Skills</Text>
             <View style={styles.skillsContainer}>
               {cleanedSkills.map((skill, index) => (
@@ -196,7 +196,7 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Professional Experience</Text>
             {cleanedExperience.map((exp, index) => (
-              <View key={index} style={styles.experienceItem} wrap={false} minPresenceAhead={40}>
+              <View key={index} style={styles.experienceItem} minPresenceAhead={40}>
                 <View style={styles.experienceHeader}>
                   <Text style={styles.experienceRole}>{exp.role}</Text>
                   {exp.duration && <Text style={styles.experienceDuration}>{exp.duration}</Text>}
