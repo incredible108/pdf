@@ -6,7 +6,6 @@ export interface Education {
 
 export type PersonalInfo = {
   fullName: string
-  jobTitle: string
   phone: string
   email: string
   location: string
@@ -29,7 +28,6 @@ export interface ResumeData {
 
 export const DEFAULT_PERSONAL_INFO: PersonalInfo = {
   fullName: "",
-  jobTitle: "",
   phone: "",
   email: "",
   location: "",
@@ -77,12 +75,25 @@ export function parseResumeContent(content: string): Partial<ResumeData> {
   let currentSection = ""
   let currentContent: string[] = []
 
+  let lastLineWasTitleHeader = false;
   for (const line of lines) {
     const trimmedLine = line.trim()
 
     // Parse "Title:" line (backend format)
     if (trimmedLine.startsWith("Title:")) {
-      sections.title = trimmedLine.replace("Title:", "").trim()
+      const afterColon = trimmedLine.replace("Title:", "").trim()
+      if (afterColon) {
+        sections.title = afterColon
+        lastLineWasTitleHeader = false
+      } else {
+        // Title is on the next line
+        lastLineWasTitleHeader = true
+      }
+      continue
+    }
+    if (lastLineWasTitleHeader && trimmedLine.length > 0) {
+      sections.title = trimmedLine
+      lastLineWasTitleHeader = false
       continue
     }
 

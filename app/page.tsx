@@ -77,6 +77,17 @@ The final output must strictly follow this exact structure:
 
 Do not change this format.
 
+========== Example Format ==========
+Title: Senior Full Stack Software Engineer
+Professional Summary: [4–6 lines tailored to the job description, including ATS keywords and measurable impact]
+Skills: JavaScript, React, Node.js, AWS, System Design, ...
+Work Experience:
+Company Name | Role | Dates
+- Bullet point 1 with Action + Technology + Project Scope + Business Impact
+- Bullet point 2 with Action + Technology + Project Scope + Business Impact
+- ... 
+============================
+
 ---
 
 ## Title
@@ -504,15 +515,6 @@ Software Engineer, 09/2015 - 09/2019
                     />
                   </Field>
                   <Field>
-                    <FieldLabel>Job Title</FieldLabel>
-                    <Input
-                      value={personalInfo.jobTitle}
-                      onChange={(e) => setPersonalInfo({ ...personalInfo, jobTitle: e.target.value })}
-                    />
-                  </Field>
-                </div>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <Field>
                     <FieldLabel>Email</FieldLabel>
                     <Input
                       type="email"
@@ -520,6 +522,8 @@ Software Engineer, 09/2015 - 09/2019
                       onChange={(e) => setPersonalInfo({ ...personalInfo, email: e.target.value })}
                     />
                   </Field>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
                   <Field>
                     <FieldLabel>Phone</FieldLabel>
                     <Input
@@ -527,20 +531,11 @@ Software Engineer, 09/2015 - 09/2019
                       onChange={(e) => setPersonalInfo({ ...personalInfo, phone: e.target.value })}
                     />
                   </Field>
-                </div>
-                <div className="grid sm:grid-cols-2 gap-4">
                   <Field>
                     <FieldLabel>Location</FieldLabel>
                     <Input
                       value={personalInfo.location}
                       onChange={(e) => setPersonalInfo({ ...personalInfo, location: e.target.value })}
-                    />
-                  </Field>
-                  <Field>
-                    <FieldLabel>LinkedIn</FieldLabel>
-                    <Input
-                      value={personalInfo.linkedin}
-                      onChange={(e) => setPersonalInfo({ ...personalInfo, linkedin: e.target.value })}
                     />
                   </Field>
                 </div>
