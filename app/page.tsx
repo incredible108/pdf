@@ -14,6 +14,7 @@ import {
   type Education,
 } from "@/lib/parse-resume"
 import { FileDown, FileText, AlertCircle, Settings, Plus, Trash2, Briefcase, Pencil, Eye } from "lucide-react"
+import { FunnyLoadingBar } from "@/components/funny-loading-bar"
 import { Input } from "@/components/ui/input"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -435,6 +436,8 @@ Requirements:
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+
+            <FunnyLoadingBar isLoading={isGenerating} />
 
             <div className="flex gap-3 flex-wrap">
               <Button onClick={handleGenerate} disabled={isGenerating}>
