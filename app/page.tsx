@@ -28,80 +28,198 @@ import {
 
 const STORAGE_KEY_PERSONAL = "resume_personal_info"
 const STORAGE_KEY_EDUCATION = "resume_education"
-const STORAGE_KEY_TEMPLATE_RESUME = "resume_template_content"
+const STORAGE_KEY_CAREER_MILESTONES = "resume_career_milestones"
 
-const PROMPT_TEXT = `First, I will provide my template resume. Then, I will share different job descriptions one by one. For each job description, tailor my resume specifically to that role. Each tailored resume should align only with the provided job description and should not reference or relate to any others.
+const PROMPT_TEXT = `Generate a fully tailored, ATS-optimized, and professionally written resume based on my career milestones and the provided job description.
 
-- Tailor Conditions:
-    1. Resume Structure
+The system must ITERATE and SELF-IMPROVE the resume until the ATS score exceeds 90%.
 
-        Resume must have only 3 sections:
+---
 
-        - Summary
-        - Technical Skills
-        - Professional Experience
-    2. Professional Summary
-        - Concise, professional, and clearly aligned with the job description, without subjects like "I" or "We".
-        - Include years of IT development experience from the Template Resume.
-        - Highlight experience and achievements with technical skills required in the job description.
-        - Emphasize experience with soft skills required in the job description and my Template Resume.
-        - Mention relevant industry experience from the job description with other industries from Template Resume.
-    - Up to 3-4 lines.
-    3. For Professional Experience Section:
-        - Each bullet point must align with the job description's responsibilities and required technical skills.
-        - Each sentence must be and descriptive, clearly outlining detailed responsibilities, achievements, and accomplishments, while naturally incorporating the technical skills, tools, and technologies used.
-        - Every sentence should include action verbs, technical skills, and soft skills from the job description where relevant.
-        - Each sentence should demonstrate impact, preferably with metrics, numbers (as much as possible), or measurable results (e.g., "improved system efficiency by 35%" or "reduced deployment time from 2 hours to 20 minutes").
-    - Each sentence must not be skills list sentence. They must be human readable, senior professional, outcome and achievement focused rather than what I did.
-        - Sentences must be written in a professional, Outcome and achievement focused, and results-oriented style suitable for ATS scanning and recruiter readability.
-        - Write each company's experience with real-world projects from my Template Resumes' Experience.
-        - Ensure each company's listed experience reflects its respective role.
-        - Write each  companies' experience based on job description and my Template Resume's Experience.
-        - Incorporate "nice-to-have" skills from the job description where relevant.
-        - Include soft skills from the job description, aligned with each company's role.
-        - Ensure the timeline of skills is historically accurate (e.g., FastAPI, released in December 2018, should not be included in Stripe company experience, since employment ended in Auguest 2015). Apply this logic to all skills.
-        - Use a fixed number of detailed bullets for each company:
-        - Most recent role: 9–12 bullets
-        - Next role: 7–10 bullets
-        - Roles with 4+ years tenure: 7–10 bullets
-        - Older roles: 7–8 bullets each
-    - Formatting:
-        * Bold section title (Professional Experience)
-        * Section header: job titles | company names | dates.
-        * Do not bold experience contents.
-        * No bullet characters or numbered lists in FINAL RESUME.
-        * Each bullet is a plain paragraph on its own line.
-        * Separate bullets with a blank line.
-    4. For Technical Skills Section:
-        - Must include all technical skills, programming languages, frameworks, cloud, DevOps, tools and others mentioned in the job description.
-        - Also include "nice-to-have" skills.
-        - Don't Categorize skills
-    - Bold section title (Technical Skills)
-        - All skills must be comma-separated.
-        - Include up to 60 skills if relevant.
-        - Always include my Template Resume's Technical Skills
-        - Add all related skills from both required and nice-to-have lists.
-    - Formatting:
-        * bullet character should be "-" in FINAL RESUME.
-        * Each bullet is a plain paragraph on its own line.
-        * Separate bullets with a blank line.
-- Final Requirements:
-    - Resume must achieve **100% ATS score**.
-    - No spelling, grammar, readability, or formatting errors.
-    - Never include am dash or an dash like this GPT style symbols.
-- Output
-  * First save tailored resume in draft(don't show drafted resume) and evaluate how strong tailored resume matched with JD. (ATS score, Human Review Score, Seniority Score, like ATS: X/10 Human Review: Y/10 Seniority: Z/10) - (Seniority mean which parts are look like junior like resume)
-  * Provide why ATS score is X and why Human Review score is Y and why Seniority score is Z.
-  * Detect AI written style phrases like "Proven track record of", "Results-driven professional", "Highly motivated self-starter", "Leveraged cutting-edge technologies", "Passionate about driving innovation", etc.
-  * Provide recommended fixes to increase ATS score and Human Review score and Seniority score.
-  * Then for the next step fix your recommend fixes and convert detected AI written style phrases to human style
-  * And again recommend fixes to increase ATS score, Human Review score and Seniority score, and also again detect AI written style phrases.
-  * Then for the next step fix your second recommend fixes and convert second detected AI written style phrases to human style.
-  * Repeat these steps until ATS score >= 9.5, Human Review score >= 9.3, Seniority score >=9.3
-  * After scores satisfied minimum requirements, provide again ATS score and Human Review score and Seniority score.
-  * And then provide final resume.
+## 🔁 Iteration & ATS Optimization Loop (MANDATORY)
 
-TEMPLATE RESUME:
+After generating the resume:
+
+1. Evaluate the resume against the job description using an ATS scoring model (0–100%).
+2. Provide a breakdown of the ATS score based on:
+
+   - Keyword match
+   - Skills alignment
+   - Experience relevance
+   - Role/title alignment
+   - Use of measurable impact
+   - Formatting & ATS readability
+3. If the ATS score is BELOW 90%:
+
+   - Identify ALL gaps (missing keywords, weak phrasing, missing tools, etc.)
+   - Improve the resume by:
+     - Injecting missing keywords naturally
+     - Strengthening bullet points with more measurable impact
+     - Improving alignment with required and preferred skills
+     - Adjusting phrasing to match recruiter search patterns
+     - Enhancing technical depth where needed
+4. Regenerate the FULL resume with improvements.
+5. Repeat this process until:
+   ✅ ATS Score ≥ 90%
+6. Output ONLY the FINAL optimized resume (do NOT include intermediate versions unless explicitly requested).
+
+---
+
+## Required Output Format
+
+The final output must strictly follow this exact structure:
+
+**Title:**
+**Professional Summary:**
+**Skills:**
+**Work Experience:**
+
+Do not change this format.
+
+---
+
+## Title
+
+Generate a highly targeted and job-specific professional title that directly matches the job description.
+
+The title should reflect seniority and alignment with the target role.
+
+Examples:
+
+* Senior Full Stack Software Engineer
+* Senior .NET / React Engineer
+* Principal Software Engineer
+* Senior Cloud Application Developer
+* Lead Backend Engineer
+
+The title must be ATS-friendly and recruiter-search optimized.
+
+---
+
+## Professional Summary
+
+Write a strong, concise, and impactful professional summary.
+
+Requirements:
+
+* 4–6 lines
+* senior-level tone
+* highly tailored to the job description
+* include top ATS keywords naturally
+* highlight years of experience
+* mention core technical strengths
+* include relevant domain/industry expertise
+* reflect architecture, development, modernization, and leadership capabilities
+
+The summary must immediately position the candidate as a strong match for the role.
+
+---
+
+## Skills
+
+Generate the most important and critical technical skills up to 45 items, strictly separated by commas in a single line.
+
+This section must be highly ATS-optimized and based on:
+
+1. the exact job description
+2. top recruiter search keywords
+3. closely related technologies
+4. industry-critical terminology
+5. adjacent tools and platforms commonly searched for this role
+
+The skills must prioritize the most critical technologies first.
+
+Maximum: 45 skills
+Format: comma-separated only
+
+---
+
+## Work Experience
+
+This section must be the strongest part of the output.
+
+For each company, generate more than 8 bullet points
+(minimum 9 bullet points per company).
+
+Each company must have:
+
+* unique bullet points
+* unique project scope
+* unique business goals
+* unique engineering challenges
+* unique measurable outcomes
+
+---
+
+## Technical Requirements for Work Experience
+
+Every bullet point must clearly explain:
+
+* what project/system was worked on
+* what technologies were used
+* why those technologies were chosen
+* what business problem was solved
+* what measurable impact was delivered
+
+Preferred structure:
+
+Action + Technology + Project Scope + Business Impact
+
+---
+
+## Timeline Accuracy Rule
+
+All technologies must be period-accurate.
+
+Do not include tools or frameworks that were not available during that time.
+
+This rule is mandatory.
+
+---
+
+## Tailoring Requirements
+
+The resume must be fully customized to the provided job description.
+
+Include:
+
+* all required skills
+* preferred skills
+* role-specific terminology
+* architecture keywords
+* domain language
+* leadership expectations
+* critical engineering keywords recruiters search for
+
+---
+
+## Uniqueness Requirement
+
+Every company must reflect its own:
+
+* business domain
+* engineering priorities
+* system architecture
+* product objectives
+* measurable business value
+
+No repeated bullets.
+No repeated sentence structures.
+No recycled wording.
+
+---
+
+## Final Output Rule
+
+Only output the FINAL resume version that achieves:
+
+✅ ATS Score ≥ 90%
+❌ Do NOT show intermediate drafts
+❌ Do NOT show scoring iterations unless asked
+
+The result must be production-ready and recruiter-quality.
+
+Career Milestone:
 
 JD:`
 
@@ -114,7 +232,7 @@ export default function Home() {
 
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>(DEFAULT_PERSONAL_INFO)
   const [education, setEducation] = useState<Education[]>(DEFAULT_EDUCATION)
-  const [templateResume, setTemplateResume] = useState("")
+  const [careerMilestones, setCareerMilestones] = useState("")
 
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
@@ -130,7 +248,7 @@ export default function Home() {
   useEffect(() => {
     const savedPersonal = localStorage.getItem(STORAGE_KEY_PERSONAL)
     const savedEducation = localStorage.getItem(STORAGE_KEY_EDUCATION)
-    const savedTemplate = localStorage.getItem(STORAGE_KEY_TEMPLATE_RESUME)
+    const savedCareerMilestone = localStorage.getItem(STORAGE_KEY_CAREER_MILESTONES)
     const savedPrompt = localStorage.getItem(STORAGE_KEY_PROMPT)
 
     if (savedPersonal) {
@@ -156,8 +274,8 @@ export default function Home() {
       }
     }
 
-    if (savedTemplate) {
-      setTemplateResume(savedTemplate)
+    if (savedCareerMilestone) {
+      setCareerMilestones(savedCareerMilestone)
     }
 
     if (savedPrompt) {
@@ -173,7 +291,7 @@ export default function Home() {
   const handleSaveSettings = () => {
     localStorage.setItem(STORAGE_KEY_PERSONAL, JSON.stringify(personalInfo))
     localStorage.setItem(STORAGE_KEY_EDUCATION, JSON.stringify(education))
-    localStorage.setItem(STORAGE_KEY_TEMPLATE_RESUME, templateResume)
+    localStorage.setItem(STORAGE_KEY_CAREER_MILESTONES, careerMilestones)
     setSettingsOpen(false)
   }
 
@@ -201,8 +319,8 @@ export default function Home() {
       return
     }
 
-    if (!templateResume.trim()) {
-      setError("Please add your template resume in Settings first")
+    if (!careerMilestones.trim()) {
+      setError("Please add your career milestones in Settings first")
       return
     }
 
@@ -213,7 +331,7 @@ export default function Home() {
       // Use the custom prompt if edited, otherwise fallback to PROMPT_TEXT
       const basePrompt = customPromptText || PROMPT_TEXT
       // Build the full prompt
-      const fullPrompt = `${basePrompt.replace("TEMPLATE RESUME:", `TEMPLATE RESUME:\n${templateResume}`).replace("JD:", `JD:\n${jobDescription}`)}`
+      const fullPrompt = `${basePrompt.replace("Career Milestone:", `Career Milestone:\n${careerMilestones}`).replace("JD:", `JD:\n${jobDescription}`)}`
 
       // Call the Python backend
       const response = await fetch("https://pdf-backend-495j.onrender.com/scrape-qwen", {
@@ -245,6 +363,7 @@ export default function Home() {
         summary: parsed.summary || "",
         technicalSkills: parsed.technicalSkills || [],
         professionalExperience: parsed.professionalExperience || [],
+        title: parsed.title || "",
       }
 
       setResumeData(fullResumeData)
@@ -356,34 +475,32 @@ Requirements:
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Resume Template & Settings</DialogTitle>
+            <DialogTitle>Resume Content & Settings</DialogTitle>
             <DialogDescription>
               Enter your full template resume content, personal info, and education. This will be saved for future use.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
-            {/* Template Resume Content */}
+            {/* Career Milestones */}
             <div>
-              <h3 className="text-sm font-medium mb-3">Template Resume Content</h3>
+              <h3 className="text-sm font-medium mb-3">Career Milestones</h3>
               <p className="text-xs text-muted-foreground mb-2">
-                Include your Summary, Technical Skills, and Professional Experience. This will be used to tailor your resume.
+                Include your career path. This will be used to tailor your resume.
               </p>
               <Textarea
-                placeholder={`Summary
-Results-driven Senior Software Engineer with 8+ years of experience...
+                placeholder={`ScienceLogic, Austin TX
+Senior Backend Engineer, 12/2021 - 04/2026
 
-Technical Skills
-JavaScript, TypeScript, React, Next.js, Node.js, Python, PostgreSQL...
+Allstate, Austin TX
+Senior Golang Engineer, 09/2019 - 11/2021
 
-Professional Experience
-Senior Software Engineer | TechCorp Inc. | 2021 - Present
-- Led development of a real-time analytics dashboard serving 100K+ daily users
-- Architected microservices infrastructure reducing system latency by 40%
-...`}
+L3 Technologies, Austin TX
+Software Engineer, 09/2015 - 09/2019
+`}
                 className="min-h-[300px] font-mono text-sm"
-                value={templateResume}
-                onChange={(e) => setTemplateResume(e.target.value)}
+                value={careerMilestones}
+                onChange={(e) => setCareerMilestones(e.target.value)}
               />
             </div>
 

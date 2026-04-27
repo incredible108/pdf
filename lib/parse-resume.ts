@@ -14,6 +14,7 @@ export type PersonalInfo = {
 }
 
 export interface ResumeData {
+  title: string
   personalInfo: PersonalInfo
   education: Education[]
   summary: string
@@ -45,6 +46,7 @@ export const DEFAULT_EDUCATION: Education[] = [
 
 export function parseResumeContent(content: string): Partial<ResumeData> {
   const sections: Partial<ResumeData> = {
+    title: "",
     summary: "",
     technicalSkills: [],
     professionalExperience: [],
