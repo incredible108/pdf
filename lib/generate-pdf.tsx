@@ -143,15 +143,6 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
 
   const contactItems = [personalInfo.phone, personalInfo.email, personalInfo.location].filter(Boolean)
   
-  // Filter out empty bullets from experience
-  const cleanedExperience = professionalExperience.map(exp => ({
-    ...exp,
-    bullets: exp.bullets.filter(bullet => bullet && bullet.trim() !== "")
-  }))
-
-  // Filter out empty skills
-  const cleanedSkills = technicalSkills.filter(skill => skill && skill.trim() !== "")
-
   return (
     <Document>
       <Page size="LETTER" style={styles.page}>
@@ -178,11 +169,11 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
         )}
 
         {/* Technical Skills */}
-        {cleanedSkills.length > 0 && (
+        {technicalSkills.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Technical Skills</Text>
             <View style={styles.skillsContainer}>
-              {cleanedSkills.map((skill, index) => (
+              {technicalSkills.map((skill, index) => (
                 <Text key={index} style={styles.skillBadge}>
                   {skill}
                 </Text>
@@ -192,10 +183,10 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
         )}
 
         {/* Professional Experience */}
-        {cleanedExperience.length > 0 && (
+        {professionalExperience.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Professional Experience</Text>
-            {cleanedExperience.map((exp, index) => (
+            {professionalExperience.map((exp, index) => (
               <View key={index} style={styles.experienceItem} minPresenceAhead={40}>
                 <View style={styles.experienceHeader}>
                   <Text style={styles.experienceRole}>{exp.role}</Text>
