@@ -526,19 +526,37 @@ Senior Software Engineer | TechCorp Inc. | 2021 - Present
               <div>
                 <DialogTitle>Resume Preview</DialogTitle>
                 <DialogDescription>
-                  {editMode
+                  {editMode 
                     ? "Edit your resume content directly. Changes will be used when generating the PDF."
                     : "Review your tailored resume before downloading"
                   }
                 </DialogDescription>
               </div>
+              <Button
+                variant={editMode ? "default" : "outline"}
+                size="sm"
+                onClick={() => setEditMode(!editMode)}
+                className="ml-4"
+              >
+                {editMode ? (
+                  <>
+                    <Eye className="h-4 w-4 mr-2" />
+                    Preview
+                  </>
+                ) : (
+                  <>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Edit
+                  </>
+                )}
+              </Button>
             </div>
           </DialogHeader>
 
           {resumeData && (
             <div className={`border rounded-lg overflow-hidden shadow-sm my-4 ${editMode ? "bg-blue-50/30" : ""}`}>
-              <ResumePreview
-                data={resumeData}
+              <ResumePreview 
+                data={resumeData} 
                 editable={editMode}
                 onDataChange={(newData) => setResumeData(newData)}
               />
@@ -551,22 +569,6 @@ Senior Software Engineer | TechCorp Inc. | 2021 - Present
               setEditMode(false)
             }}>
               Close
-            </Button>
-            <Button
-              variant={editMode ? "default" : "outline"}
-              onClick={() => setEditMode(!editMode)}
-            >
-              {editMode ? (
-                <>
-                  <Eye className="h-4 w-4 mr-2" />
-                  Save
-                </>
-              ) : (
-                <>
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Edit
-                </>
-              )}
             </Button>
             <Button onClick={handleDownloadPDF}>
               <FileDown className="h-4 w-4 mr-2" />
