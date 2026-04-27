@@ -82,35 +82,48 @@ export function FunnyLoadingBar({ isLoading, className }: FunnyLoadingBarProps) 
   if (!isLoading) return null
 
   return (
-    <div className={cn("space-y-4 py-6", className)}>
-      <div className="space-y-2">
-        <Progress value={progress} className="h-3" />
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>{Math.round(progress)}%</span>
-          <span>Generating your amazing resume...</span>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+      <div className={cn("w-full max-w-md mx-4 bg-card rounded-xl border shadow-2xl p-8 space-y-6", className)}>
+        <div className="text-center space-y-2">
+          <h3 className="text-xl font-semibold text-foreground">Crafting Your Resume</h3>
+          <p className="text-sm text-muted-foreground">Please wait while we work our magic...</p>
         </div>
-      </div>
-      
-      <div className="flex items-center justify-center gap-3 py-4">
-        <div className="flex gap-1">
-          <span className="animate-bounce delay-0 text-2xl">🤖</span>
-          <span className="animate-bounce delay-75 text-2xl" style={{ animationDelay: "0.1s" }}>📝</span>
-          <span className="animate-bounce delay-150 text-2xl" style={{ animationDelay: "0.2s" }}>✨</span>
+
+        <div className="space-y-2">
+          <Progress value={progress} className="h-4" />
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span className="font-mono">{Math.round(progress)}%</span>
+            <span>Almost there...</span>
+          </div>
         </div>
-      </div>
+        
+        <div className="flex items-center justify-center gap-4 py-4">
+          <div className="flex gap-2">
+            <span className="animate-bounce text-3xl" style={{ animationDelay: "0s" }}>🤖</span>
+            <span className="animate-bounce text-3xl" style={{ animationDelay: "0.1s" }}>📝</span>
+            <span className="animate-bounce text-3xl" style={{ animationDelay: "0.2s" }}>✨</span>
+          </div>
+        </div>
 
-      <p className="text-center text-sm font-medium text-foreground animate-pulse">
-        {displayedMessage}
-      </p>
+        <div className="bg-muted/50 rounded-lg p-4">
+          <p className="text-center text-sm font-medium text-foreground animate-pulse min-h-[1.5rem]">
+            {displayedMessage}
+          </p>
+        </div>
 
-      <div className="flex justify-center gap-1.5 pt-2">
-        {[0, 1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            className="h-2 w-2 rounded-full bg-primary animate-pulse"
-            style={{ animationDelay: `${i * 0.15}s` }}
-          />
-        ))}
+        <div className="flex justify-center gap-2 pt-2">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="h-2.5 w-2.5 rounded-full bg-primary animate-pulse"
+              style={{ animationDelay: `${i * 0.15}s` }}
+            />
+          ))}
+        </div>
+
+        <p className="text-center text-xs text-muted-foreground">
+          This may take a moment. Good things come to those who wait!
+        </p>
       </div>
     </div>
   )
