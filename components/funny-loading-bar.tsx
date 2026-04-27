@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
+import { Bot, FileText, Sparkles } from "lucide-react"
 
 const FUNNY_MESSAGES = [
   "Brewing coffee for the AI...",
@@ -98,10 +99,16 @@ export function FunnyLoadingBar({ isLoading, className }: FunnyLoadingBarProps) 
         </div>
         
         <div className="flex items-center justify-center gap-4 py-4">
-          <div className="flex gap-2">
-            <span className="animate-bounce text-3xl" style={{ animationDelay: "0s" }}>🤖</span>
-            <span className="animate-bounce text-3xl" style={{ animationDelay: "0.1s" }}>📝</span>
-            <span className="animate-bounce text-3xl" style={{ animationDelay: "0.2s" }}>✨</span>
+          <div className="flex gap-3">
+            <div className="animate-bounce rounded-full bg-primary/10 p-2.5" style={{ animationDelay: "0s" }}>
+              <Bot className="h-6 w-6 text-primary" />
+            </div>
+            <div className="animate-bounce rounded-full bg-primary/10 p-2.5" style={{ animationDelay: "0.1s" }}>
+              <FileText className="h-6 w-6 text-primary" />
+            </div>
+            <div className="animate-bounce rounded-full bg-primary/10 p-2.5" style={{ animationDelay: "0.2s" }}>
+              <Sparkles className="h-6 w-6 text-primary" />
+            </div>
           </div>
         </div>
 
