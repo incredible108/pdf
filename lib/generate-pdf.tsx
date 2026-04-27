@@ -142,7 +142,7 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
   const { personalInfo, education, summary, technicalSkills, professionalExperience } = data
 
   const contactItems = [personalInfo.phone, personalInfo.email, personalInfo.location].filter(Boolean)
-  
+
   return (
     <Document>
       <Page size="LETTER" style={styles.page}>
@@ -161,7 +161,7 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
         </View>
 
         {/* Professional Summary */}
-        {summary && summary.trim() !== "" && (
+        {summary && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Professional Summary</Text>
             <Text style={styles.summaryText}>{summary}</Text>
@@ -187,42 +187,38 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Professional Experience</Text>
             {professionalExperience.map((exp, index) => (
-              <View key={index} style={styles.experienceItem} minPresenceAhead={40}>
+              <View key={index} style={styles.experienceItem}>
                 <View style={styles.experienceHeader}>
                   <Text style={styles.experienceRole}>{exp.role}</Text>
                   {exp.duration && <Text style={styles.experienceDuration}>{exp.duration}</Text>}
                 </View>
                 {exp.company && <Text style={styles.experienceCompany}>{exp.company}</Text>}
-                {exp.bullets.length > 0 && (
-                  <View style={styles.bulletList}>
-                    {exp.bullets.map((bullet, bulletIndex) => (
+                <View style={styles.bulletList}>
+                  {exp.bullets.map((bullet, bulletIndex) => (
                       <View key={bulletIndex} style={styles.bulletItem} wrap={false}>
-                        <Text style={styles.bullet}>•</Text>
-                        <Text style={styles.bulletText}>{bullet}</Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
+                      <Text style={styles.bullet}>•</Text>
+                      <Text style={styles.bulletText}>{bullet}</Text>
+                    </View>
+                  ))}
+                </View>
               </View>
             ))}
           </View>
         )}
 
         {/* Education */}
-        {education.length > 0 && (
-          <View style={styles.section} wrap={false}>
-            <Text style={styles.sectionTitle}>Education</Text>
-            {education.map((edu, index) => (
-              <View key={index} style={[styles.educationHeader, index > 0 && { marginTop: 8 }]}>
-                <View>
-                  <Text style={styles.educationDegree}>{edu.degree}</Text>
-                  <Text style={styles.educationSchool}>{edu.school}</Text>
-                </View>
-                <Text style={styles.educationYear}>{edu.year}</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Education</Text>
+          {education.map((edu, index) => (
+            <View key={index} style={[styles.educationHeader, index > 0 && { marginTop: 8 }]}>
+              <View>
+                <Text style={styles.educationDegree}>{edu.degree}</Text>
+                <Text style={styles.educationSchool}>{edu.school}</Text>
               </View>
-            ))}
-          </View>
-        )}
+              <Text style={styles.educationYear}>{edu.year}</Text>
+            </View>
+          ))}
+        </View>
       </Page>
     </Document>
   )
