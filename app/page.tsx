@@ -13,7 +13,7 @@ import {
   type PersonalInfo,
   type Education,
 } from "@/lib/parse-resume"
-import { FileDown, FileText, AlertCircle, Settings, Plus, Trash2, Briefcase } from "lucide-react"
+import { FileDown, FileText, AlertCircle, Settings, Plus, Trash2, Briefcase, Pencil, Eye } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -119,6 +119,7 @@ export default function Home() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [promptOpen, setPromptOpen] = useState(false)
+  const [editMode, setEditMode] = useState(false)
 
   // Storage key for prompt
   const STORAGE_KEY_PROMPT = "resume_custom_prompt"
@@ -515,23 +516,58 @@ Senior Software Engineer | TechCorp Inc. | 2021 - Present
       </Dialog>
 
       {/* Preview Modal */}
-      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+      <Dialog open={previewOpen} onOpenChange={(open) => {
+        setPreviewOpen(open)
+        if (!open) setEditMode(false)
+      }}>
         <DialogContent className="sm:max-w-4xl max-h-[95vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Resume Preview</DialogTitle>
-            <DialogDescription>
-              Review your tailored resume before downloading
-            </DialogDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle>Resume Preview</DialogTitle>
+                <DialogDescription>
+                  {editMode 
+                    ? "Edit your resume content directly. Changes will be used when generating the PDF."
+                    : "Review your tailored resume before downloading"
+                  }
+                </DialogDescription>
+              </div>
+              <Button
+                variant={editMode ? "default" : "outline"}
+                size="sm"
+                onClick={() => setEditMode(!editMode)}
+                className="ml-4"
+              >
+                {editMode ? (
+                  <>
+                    <Eye className="h-4 w-4 mr-2" />
+                    Preview
+                  </>
+                ) : (
+                  <>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Edit
+                  </>
+                )}
+              </Button>
+            </div>
           </DialogHeader>
 
           {resumeData && (
-            <div className="border rounded-lg overflow-hidden shadow-sm my-4">
-              <ResumePreview data={resumeData} />
+            <div className={`border rounded-lg overflow-hidden shadow-sm my-4 ${editMode ? "bg-blue-50/30" : ""}`}>
+              <ResumePreview 
+                data={resumeData} 
+                editable={editMode}
+                onDataChange={(newData) => setResumeData(newData)}
+              />
             </div>
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setPreviewOpen(false)}>
+            <Button variant="outline" onClick={() => {
+              setPreviewOpen(false)
+              setEditMode(false)
+            }}>
               Close
             </Button>
             <Button onClick={handleDownloadPDF}>
