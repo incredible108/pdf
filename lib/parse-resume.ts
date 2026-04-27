@@ -27,19 +27,19 @@ export interface ResumeData {
 }
 
 export const DEFAULT_PERSONAL_INFO: PersonalInfo = {
-  fullName: "John Doe",
-  jobTitle: "Senior Software Engineer",
-  phone: "(555) 123-4567",
-  email: "john.doe@email.com",
-  location: "San Francisco, CA",
-  linkedin: "linkedin.com/in/johndoe",
+  fullName: "",
+  jobTitle: "",
+  phone: "",
+  email: "",
+  location: "",
+  linkedin: "",
 }
 
 export const DEFAULT_EDUCATION: Education[] = [
   {
-    degree: "Bachelor of Science in Computer Science",
-    school: "University of California, Berkeley",
-    year: "2018",
+    degree: "",
+    school: "",
+    year: "",
   },
 ]
 

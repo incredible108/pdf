@@ -26,22 +26,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 
-const SAMPLE_JOB_DESCRIPTION = `Senior Software Engineer
-
-We are looking for a Senior Software Engineer to join our team. You will be responsible for building scalable web applications and leading cross-functional teams.
-
-Requirements:
-- 5+ years of experience with JavaScript, TypeScript, React, and Node.js
-- Experience with cloud platforms (AWS, GCP, or Azure)
-- Strong understanding of system design and architecture
-- Experience with databases (PostgreSQL, MongoDB)
-- Excellent communication and leadership skills
-
-Nice to have:
-- Experience with Kubernetes and Docker
-- GraphQL experience
-- CI/CD pipeline experience`
-
 const STORAGE_KEY_PERSONAL = "resume_personal_info"
 const STORAGE_KEY_EDUCATION = "resume_education"
 const STORAGE_KEY_TEMPLATE_RESUME = "resume_template_content"
@@ -121,6 +105,7 @@ TEMPLATE RESUME:
 
 JD:`
 
+
 export default function Home() {
   const [jobDescription, setJobDescription] = useState("")
   const [resumeData, setResumeData] = useState<ResumeData | null>(null)
@@ -135,11 +120,17 @@ export default function Home() {
   const [previewOpen, setPreviewOpen] = useState(false)
   const [promptOpen, setPromptOpen] = useState(false)
 
+  // Storage key for prompt
+  const STORAGE_KEY_PROMPT = "resume_custom_prompt"
+  // New state for editable prompt
+  const [customPromptText, setCustomPromptText] = useState<string>(PROMPT_TEXT)
+
   // Load saved data on mount
   useEffect(() => {
     const savedPersonal = localStorage.getItem(STORAGE_KEY_PERSONAL)
     const savedEducation = localStorage.getItem(STORAGE_KEY_EDUCATION)
     const savedTemplate = localStorage.getItem(STORAGE_KEY_TEMPLATE_RESUME)
+    const savedPrompt = localStorage.getItem(STORAGE_KEY_PROMPT)
 
     if (savedPersonal) {
       try {
@@ -167,7 +158,16 @@ export default function Home() {
     if (savedTemplate) {
       setTemplateResume(savedTemplate)
     }
+
+    if (savedPrompt) {
+      setCustomPromptText(savedPrompt)
+    }
   }, [])
+
+  // Save prompt to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_PROMPT, customPromptText)
+  }, [customPromptText])
 
   const handleSaveSettings = () => {
     localStorage.setItem(STORAGE_KEY_PERSONAL, JSON.stringify(personalInfo))
@@ -209,8 +209,10 @@ export default function Home() {
     setIsGenerating(true)
 
     try {
+      // Use the custom prompt if edited, otherwise fallback to PROMPT_TEXT
+      const basePrompt = customPromptText || PROMPT_TEXT
       // Build the full prompt
-      const fullPrompt = `${PROMPT_TEXT.replace("TEMPLATE RESUME:", `TEMPLATE RESUME:\n${templateResume}`).replace("JD:", `JD:\n${jobDescription}`)}`
+      const fullPrompt = `${basePrompt.replace("TEMPLATE RESUME:", `TEMPLATE RESUME:\n${templateResume}`).replace("JD:", `JD:\n${jobDescription}`)}`
 
       // Call the Python backend
       const response = await fetch("https://pdf-backend-495j.onrender.com/scrape-qwen", {
@@ -265,11 +267,6 @@ export default function Home() {
       console.error("PDF generation error:", error)
       setError("Failed to generate PDF. Please try again.")
     }
-  }
-
-  const handleLoadSample = () => {
-    setJobDescription(SAMPLE_JOB_DESCRIPTION)
-    setError("")
   }
 
   return (
@@ -339,11 +336,15 @@ Requirements:
               <Button onClick={handleGenerate} disabled={isGenerating}>
                 {isGenerating ? "Generating..." : "Generate Resume"}
               </Button>
-              <Button variant="outline" onClick={handleLoadSample}>
-                Load Sample
-              </Button>
               <Button variant="outline" onClick={() => setPromptOpen(true)}>
                 Prompt
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setPreviewOpen(true)}
+                disabled={!resumeData}
+              >
+                Preview Resume
               </Button>
             </div>
           </CardContent>
@@ -547,21 +548,24 @@ Senior Software Engineer | TechCorp Inc. | 2021 - Present
           <DialogHeader>
             <DialogTitle>Resume Tailoring Prompt</DialogTitle>
             <DialogDescription>
-              This is the prompt used to tailor your resume for job descriptions
+              You can edit the prompt below. The edited prompt will be used for resume generation.
             </DialogDescription>
           </DialogHeader>
 
           <div className="my-4">
-            <pre className="bg-muted p-4 rounded-lg text-sm whitespace-pre-wrap font-mono overflow-x-auto">
-              {PROMPT_TEXT}
-            </pre>
+            <Textarea
+              className="min-h-[300px] font-mono text-sm"
+              value={customPromptText}
+              onChange={(e) => setCustomPromptText(e.target.value)}
+              placeholder="Edit the prompt here..."
+            />
           </div>
 
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() => {
-                navigator.clipboard.writeText(PROMPT_TEXT)
+                navigator.clipboard.writeText(customPromptText)
               }}
             >
               Copy to Clipboard
