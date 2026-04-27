@@ -489,13 +489,13 @@ Requirements:
                 Include your career path. This will be used to tailor your resume.
               </p>
               <Textarea
-                placeholder={`ScienceLogic, Austin TX
+                placeholder={`ScienceLogic
 Senior Backend Engineer, 12/2021 - 04/2026
 
-Allstate, Austin TX
+Allstate
 Senior Golang Engineer, 09/2019 - 11/2021
 
-L3 Technologies, Austin TX
+L3 Technologies
 Software Engineer, 09/2015 - 09/2019
 `}
                 className="min-h-[300px] font-mono text-sm"

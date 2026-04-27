@@ -191,8 +191,8 @@ function parseExperience(
     bullets: string[]
   } | null = null
 
-  // Backend format pattern: Company | Location | Role | MM/YYYY - MM/YYYY (or Present)
-  const backendJobPattern = /^(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(\d{2}\/\d{4}\s*-\s*(?:\d{2}\/\d{4}|Present))$/i
+  // Backend format pattern: Company | Role | MM/YYYY - MM/YYYY (or Present)
+const backendJobPattern = /^(.+?)\s*\|\s*(.+?)\s*\|\s*(\d{2}\/\d{4}\s*-\s*(?:\d{2}\/\d{4}|Present))$/i
 
   // Date pattern: "Month Year - Month Year" or "Month Year - Present"
   // Examples: "Mar 2020 - Feb 2026", "Nov 2017 - Present"
@@ -202,14 +202,14 @@ function parseExperience(
     const trimmedLine = line.trim()
     if (!trimmedLine || trimmedLine === '|') continue
 
-    // Check for backend format: Company | Location | Role | MM/YYYY - MM/YYYY
+    // Check for backend format: Company | Role | MM/YYYY - MM/YYYY
     const backendMatch = trimmedLine.match(backendJobPattern)
     if (backendMatch) {
       if (current) experiences.push(current)
-      const [, company, location, role, duration] = backendMatch
+      const [, company, role, duration] = backendMatch
       current = {
         role: role.trim(),
-        company: `${company.trim()}, ${location.trim()}`,
+        company: company.trim(),
         duration: formatDuration(duration.trim()),
         bullets: []
       }
