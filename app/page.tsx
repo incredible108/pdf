@@ -236,20 +236,13 @@ export default function Home() {
 
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
-  const [promptOpen, setPromptOpen] = useState(false)
-  const [editMode, setEditMode] = useState(false)
+  // const [promptOpen, setPromptOpen] = useState(false)
 
-  // Storage key for prompt
-  const STORAGE_KEY_PROMPT = "resume_custom_prompt"
-  // New state for editable prompt
-  const [customPromptText, setCustomPromptText] = useState<string>(PROMPT_TEXT)
-
-  // Load saved data on mount
+  // Load saved data on mount (prompt is no longer loaded from storage)
   useEffect(() => {
     const savedPersonal = localStorage.getItem(STORAGE_KEY_PERSONAL)
     const savedEducation = localStorage.getItem(STORAGE_KEY_EDUCATION)
     const savedCareerMilestone = localStorage.getItem(STORAGE_KEY_CAREER_MILESTONES)
-    const savedPrompt = localStorage.getItem(STORAGE_KEY_PROMPT)
 
     if (savedPersonal) {
       try {
@@ -277,16 +270,9 @@ export default function Home() {
     if (savedCareerMilestone) {
       setCareerMilestones(savedCareerMilestone)
     }
-
-    if (savedPrompt) {
-      setCustomPromptText(savedPrompt)
-    }
   }, [])
 
-  // Save prompt to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_PROMPT, customPromptText)
-  }, [customPromptText])
+  // Prompt is no longer saved to localStorage
 
   const handleSaveSettings = () => {
     localStorage.setItem(STORAGE_KEY_PERSONAL, JSON.stringify(personalInfo))
@@ -328,10 +314,8 @@ export default function Home() {
     setIsGenerating(true)
 
     try {
-      // Use the custom prompt if edited, otherwise fallback to PROMPT_TEXT
-      const basePrompt = customPromptText || PROMPT_TEXT
       // Build the full prompt
-      const fullPrompt = `${basePrompt.replace("Career Milestone:", `Career Milestone:\n${careerMilestones}`).replace("JD:", `JD:\n${jobDescription}`)}`
+      const fullPrompt = `${PROMPT_TEXT.replace("Career Milestone:", `Career Milestone:\n${careerMilestones}`).replace("JD:", `JD:\n${jobDescription}`)}`
 
       // Call the Python backend
       const response = await fetch("https://pdf-backend-495j.onrender.com/scrape-qwen", {
@@ -456,9 +440,9 @@ Requirements:
               <Button onClick={handleGenerate} disabled={isGenerating}>
                 {isGenerating ? "Generating..." : "Generate Resume"}
               </Button>
-              <Button variant="outline" onClick={() => setPromptOpen(true)}>
+              {/* <Button variant="outline" onClick={() => setPromptOpen(true)}>
                 Prompt
-              </Button>
+              </Button> */}
               <Button
                 variant="outline"
                 onClick={() => setPreviewOpen(true)}
@@ -632,58 +616,28 @@ Software Engineer, 09/2015 - 09/2019
         </DialogContent>
       </Dialog>
 
-      {/* Preview Modal */}
-      <Dialog open={previewOpen} onOpenChange={(open) => {
-        setPreviewOpen(open)
-        if (!open) setEditMode(false)
-      }}>
+      {/* Preview Modal (edit functionality removed) */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="sm:max-w-4xl max-h-[95vh] overflow-y-auto">
           <DialogHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle>Resume Preview</DialogTitle>
-                <DialogDescription>
-                  {editMode
-                    ? "Edit your resume content directly. Changes will be used when generating the PDF."
-                    : "Review your tailored resume before downloading"
-                  }
-                </DialogDescription>
-              </div>
-            </div>
+            <DialogTitle>Resume Preview</DialogTitle>
+            <DialogDescription>
+              Review your tailored resume before downloading
+            </DialogDescription>
           </DialogHeader>
 
           {resumeData && (
-            <div className={`border rounded-lg overflow-hidden shadow-sm my-4 ${editMode ? "bg-blue-50/30" : ""}`}>
+            <div className="border rounded-lg overflow-hidden shadow-sm my-4">
               <ResumePreview
                 data={resumeData}
-                editable={editMode}
-                onDataChange={(newData) => setResumeData(newData)}
+                editable={false}
               />
             </div>
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setPreviewOpen(false)
-              setEditMode(false)
-            }}>
+            <Button variant="outline" onClick={() => setPreviewOpen(false)}>
               Close
-            </Button>
-            <Button
-              variant={editMode ? "default" : "outline"}
-              onClick={() => setEditMode(!editMode)}
-            >
-              {editMode ? (
-                <>
-                  <Eye className="h-4 w-4 mr-2" />
-                  Save
-                </>
-              ) : (
-                <>
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Edit
-                </>
-              )}
             </Button>
             <Button onClick={handleDownloadPDF}>
               <FileDown className="h-4 w-4 mr-2" />
@@ -693,22 +647,22 @@ Software Engineer, 09/2015 - 09/2019
         </DialogContent>
       </Dialog>
 
-      {/* Prompt Modal */}
-      <Dialog open={promptOpen} onOpenChange={setPromptOpen}>
+      {/* Prompt Modal (read-only) */}
+      {/* <Dialog open={promptOpen} onOpenChange={setPromptOpen}>
         <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Resume Tailoring Prompt</DialogTitle>
             <DialogDescription>
-              You can edit the prompt below. The edited prompt will be used for resume generation.
+              This is the prompt used for resume generation. Editing is disabled.
             </DialogDescription>
           </DialogHeader>
 
           <div className="my-4">
             <Textarea
               className="min-h-[300px] font-mono text-sm"
-              value={customPromptText}
-              onChange={(e) => setCustomPromptText(e.target.value)}
-              placeholder="Edit the prompt here..."
+              value={PROMPT_TEXT}
+              readOnly
+              placeholder="Prompt is read-only."
             />
           </div>
 
@@ -716,7 +670,7 @@ Software Engineer, 09/2015 - 09/2019
             <Button
               variant="outline"
               onClick={() => {
-                navigator.clipboard.writeText(customPromptText)
+                navigator.clipboard.writeText(PROMPT_TEXT)
               }}
             >
               Copy to Clipboard
@@ -726,7 +680,7 @@ Software Engineer, 09/2015 - 09/2019
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </main>
   )
 }
