@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     color: "#374151",
   },
   experienceItem: {
-    marginBottom: 12,
+    marginTop: 8,
   },
   experienceHeader: {
     flexDirection: "row",
@@ -187,15 +187,17 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Professional Experience</Text>
             {workexperience.map((exp, index) => (
-              <View key={index} style={styles.experienceItem}>
-                <View style={styles.experienceHeader}>
-                  <Text style={styles.experienceRole}>{exp.role}</Text>
-                  {exp.duration && <Text style={styles.experienceDuration}>{exp.duration}</Text>}
+              <View key={index} style={index === 0 ? undefined : styles.experienceItem} wrap={true}>
+                <View wrap={false}>
+                  <View style={styles.experienceHeader}>
+                    {exp.companyname && <Text style={styles.experienceRole}>{exp.companyname}</Text>}
+                    {exp.duration && <Text style={styles.experienceDuration}>{exp.duration}</Text>}
+                  </View>
+                  <Text style={styles.experienceCompany}>{exp.role}</Text>
                 </View>
-                {exp.companyname && <Text style={styles.experienceCompany}>{exp.companyname}</Text>}
                 <View style={styles.bulletList}>
                   {exp.experience.map((bullet, bulletIndex) => (
-                      <View key={bulletIndex} style={styles.bulletItem} wrap={false}>
+                    <View key={bulletIndex} style={styles.bulletItem} wrap={false}>
                       <Text style={styles.bullet}>•</Text>
                       <Text style={styles.bulletText}>{bullet}</Text>
                     </View>
