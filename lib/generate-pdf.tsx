@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
 
 // Resume PDF Document Component
 const ResumeDocument = ({ data }: { data: ResumeData }) => {
-  const { personalInfo, education, summary, technicalSkills, professionalExperience, title } = data
+  const { personalInfo, education, summary, skills, workexperience, title } = data
 
   const contactItems = [personalInfo.phone, personalInfo.email, personalInfo.location].filter(Boolean)
 
@@ -169,11 +169,11 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
         )}
 
         {/* Technical Skills */}
-        {technicalSkills.length > 0 && (
+        {skills.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Technical Skills</Text>
             <View style={styles.skillsContainer}>
-              {technicalSkills.map((skill, index) => (
+              {skills.map((skill, index) => (
                 <Text key={index} style={styles.skillBadge}>
                   {skill}
                 </Text>
@@ -183,18 +183,18 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
         )}
 
         {/* Professional Experience */}
-        {professionalExperience.length > 0 && (
+        {workexperience.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Professional Experience</Text>
-            {professionalExperience.map((exp, index) => (
+            {workexperience.map((exp, index) => (
               <View key={index} style={styles.experienceItem}>
                 <View style={styles.experienceHeader}>
                   <Text style={styles.experienceRole}>{exp.role}</Text>
                   {exp.duration && <Text style={styles.experienceDuration}>{exp.duration}</Text>}
                 </View>
-                {exp.company && <Text style={styles.experienceCompany}>{exp.company}</Text>}
+                {exp.companyname && <Text style={styles.experienceCompany}>{exp.companyname}</Text>}
                 <View style={styles.bulletList}>
-                  {exp.bullets.map((bullet, bulletIndex) => (
+                  {exp.experience.map((bullet, bulletIndex) => (
                       <View key={bulletIndex} style={styles.bulletItem} wrap={false}>
                       <Text style={styles.bullet}>•</Text>
                       <Text style={styles.bulletText}>{bullet}</Text>

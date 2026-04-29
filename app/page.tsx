@@ -6,7 +6,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { ResumePreview } from "@/components/resume-preview"
 import {
-  parseResumeContent,
   DEFAULT_PERSONAL_INFO,
   DEFAULT_EDUCATION,
   type ResumeData,
@@ -26,12 +25,13 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { createExhaustiveParamsProxy } from "next/dist/server/app-render/instant-validation/instant-samples"
 
 const STORAGE_KEY_PERSONAL = "resume_personal_info"
 const STORAGE_KEY_EDUCATION = "resume_education"
 const STORAGE_KEY_CAREER_MILESTONES = "resume_career_milestones"
 
-const PROMPT_TEXT = `Generate a fully tailored, ATS-optimized, and professionally written resume based on my career milestones and the provided job description.
+const PROMPT_TEXT = `Generate a fully tailored, ATS-optimized, and professionally written resume based on my career milestones and the provided job description. give me result only. no descriptions needed like "additions" or "here's ...". The content should only consists with alphabetic letters, numbers, mathmatic operations. do not make special letters like "𝑣𝑠".
 
 The system must ITERATE and SELF-IMPROVE the resume until the ATS score exceeds 90%.
 
@@ -54,6 +54,7 @@ After generating the resume:
 
    - Identify ALL gaps (missing keywords, weak phrasing, missing tools, etc.)
    - Improve the resume by:
+
      - Injecting missing keywords naturally
      - Strengthening bullet points with more measurable impact
      - Improving alignment with required and preferred skills
@@ -61,6 +62,7 @@ After generating the resume:
      - Enhancing technical depth where needed
 4. Regenerate the FULL resume with improvements.
 5. Repeat this process until:
+
    ✅ ATS Score ≥ 90%
 6. Output ONLY the FINAL optimized resume (do NOT include intermediate versions unless explicitly requested).
 
@@ -68,25 +70,75 @@ After generating the resume:
 
 ## Required Output Format
 
-The final output must strictly follow this exact structure:
+The final output must strictly follow below exact json structure:
 
-**Title:**
-**Professional Summary:**
-**Skills:**
-**Work Experience:**
+### 📦 Required JSON Output Schema
 
-Do not change this format.
+{
 
-========== Example Format ==========
-Title: Senior Full Stack Software Engineer
-Professional Summary: [4–6 lines tailored to the job description, including ATS keywords and measurable impact]
-Skills: JavaScript, React, Node.js, AWS, System Design, ...
-Work Experience:
-Company Name | Role | Dates
-- Bullet point 1 with Action + Technology + Project Scope + Business Impact
-- Bullet point 2 with Action + Technology + Project Scope + Business Impact
-- ... 
-============================
+  "title": "...",
+
+  "summary": "...",
+
+  "skills": ["...", "..."],
+
+  "workexperience": [
+
+    {
+
+    "companyname": "...",
+
+    "role": "...",
+
+    "duration": "MM-YYYY - MM-YYYY",
+
+    "experience": ["...", "...", "..."]
+
+    }
+
+  ]
+
+}
+
+### 📝 Field Specifications & Constraints
+
+#### "title"
+
+- Generate a highly targeted, job-specific professional title matching the job description.
+- Reflect seniority, ATS-friendly, and recruiter-search optimized.
+- Must align exactly with the target role's level and domain.
+
+#### "summary"
+
+- 4–6 lines, senior-level tone, highly tailored to the job description.
+- Naturally embed top ATS keywords.
+- Highlight years of experience, core technical strengths, domain/industry expertise, and architecture/leadership capabilities.
+- Must immediately position the candidate as a strong match for the role.
+
+#### "skills"
+
+- Array of strings, maximum 45 items.
+- Prioritize exact JD keywords, top recruiter search terms, closely related technologies, industry-critical terminology, and adjacent tools.
+- Order from most critical to least.
+- No duplicates, no markdown, no trailing commas.
+
+#### "work experience"
+
+- Array of objects, one per career milestone provided.
+- Each object MUST contain:
+
+  • "company name": Exact company name from milestones.
+
+  • "role": Exact job title from milestones.
+
+  • "duration": {"start": "MM-YYYY", "end": "MM-YYYY"} matching the provided timeline.
+
+  • "experience": Array of AT LEAST 9 strings (bullet points).
+- Each bullet string must clearly explain: what project/system was built, technologies used, why chosen, business problem solved, and measurable impact delivered.
+- Preferred structure: Action + Technology + Project Scope + Business Impact.
+- Every company must reflect unique business domain, engineering priorities, system architecture, product objectives, and measurable value.
+- NO repeated bullets, sentence structures, or recycled wording.
+- Timeline Accuracy Rule: ONLY include technologies/frameworks that were publicly available during the specified start/end dates.
 
 ---
 
@@ -142,6 +194,7 @@ This section must be highly ATS-optimized and based on:
 The skills must prioritize the most critical technologies first.
 
 Maximum: 45 skills
+
 Format: comma-separated only
 
 ---
@@ -151,6 +204,7 @@ Format: comma-separated only
 This section must be the strongest part of the output.
 
 For each company, generate more than 8 bullet points
+
 (minimum 9 bullet points per company).
 
 Each company must have:
@@ -216,7 +270,9 @@ Every company must reflect its own:
 * measurable business value
 
 No repeated bullets.
+
 No repeated sentence structures.
+
 No recycled wording.
 
 ---
@@ -226,7 +282,9 @@ No recycled wording.
 Only output the FINAL resume version that achieves:
 
 ✅ ATS Score ≥ 90%
+
 ❌ Do NOT show intermediate drafts
+
 ❌ Do NOT show scoring iterations unless asked
 
 The result must be production-ready and recruiter-quality.
@@ -330,7 +388,15 @@ export default function Home() {
       const fullPrompt = `${PROMPT_TEXT.replace("Career Milestone:", `Career Milestone:\n${careerMilestones}`).replace("JD:", `JD:\n${jobDescription}`)}`
 
       // Call the Python backend
-      const response = await fetch("https://pdf-backend-495j.onrender.com/scrape-qwen", {
+      // const response = await fetch("https://pdf-backend-495j.onrender.com/scrape-qwen", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify({ prompt: fullPrompt }),
+      // })
+
+      const response = await fetch("https://pdf-backend-deepseek.onrender.com/scrape-deepseek", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -350,15 +416,21 @@ export default function Home() {
         throw new Error("No response received from backend")
       }
 
+      const cleaned = generatedContent.slice(
+        generatedContent.indexOf('{'),
+        generatedContent.lastIndexOf('}') + 1
+      );
       // Parse the generated resume content
-      const parsed = parseResumeContent(generatedContent)
+      console.log(cleaned)
+      const parsed = JSON.parse(cleaned)
+      console.log("title:", parsed.title)
 
       const fullResumeData: ResumeData = {
         personalInfo,
         education,
         summary: parsed.summary || "",
-        technicalSkills: parsed.technicalSkills || [],
-        professionalExperience: parsed.professionalExperience || [],
+        skills: parsed.skills || [],
+        workexperience: parsed.workexperience || [],
         title: parsed.title || "",
       }
 
