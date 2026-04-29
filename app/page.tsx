@@ -25,127 +25,74 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { createExhaustiveParamsProxy } from "next/dist/server/app-render/instant-validation/instant-samples"
 
 const STORAGE_KEY_PERSONAL = "resume_personal_info"
 const STORAGE_KEY_EDUCATION = "resume_education"
 const STORAGE_KEY_CAREER_MILESTONES = "resume_career_milestones"
 
-const PROMPT_TEXT = `Generate a fully tailored, ATS-optimized, and professionally written resume based on my career milestones and the provided job description. give me result only. no descriptions needed like "additions" or "here's ...". The content should only consists with alphabetic letters, numbers, mathmatic operations. do not make special letters like "𝑣𝑠".
+const PROMPT_TEXT = `Generate a fully tailored, ATS optimized, professionally written resume based on the provided career milestones and job description.
 
-The system must ITERATE and SELF-IMPROVE the resume until the ATS score exceeds 90%.
+The system must iterate and improve the resume until the ATS score exceeds 90 percent.
 
----
+Return result only. Do not include explanations, notes, or intermediate versions.
 
-## 🔁 Iteration & ATS Optimization Loop (MANDATORY)
-
-After generating the resume:
-
-1. Evaluate the resume against the job description using an ATS scoring model (0–100%).
-2. Provide a breakdown of the ATS score based on:
-
-   - Keyword match
-   - Skills alignment
-   - Experience relevance
-   - Role/title alignment
-   - Use of measurable impact
-   - Formatting & ATS readability
-3. If the ATS score is BELOW 90%:
-
-   - Identify ALL gaps (missing keywords, weak phrasing, missing tools, etc.)
-   - Improve the resume by:
-
-     - Injecting missing keywords naturally
-     - Strengthening bullet points with more measurable impact
-     - Improving alignment with required and preferred skills
-     - Adjusting phrasing to match recruiter search patterns
-     - Enhancing technical depth where needed
-4. Regenerate the FULL resume with improvements.
-5. Repeat this process until:
-
-   ✅ ATS Score ≥ 90%
-6. Output ONLY the FINAL optimized resume (do NOT include intermediate versions unless explicitly requested).
+Use only standard alphabetic letters, numbers, and basic punctuation. Do not use special styled characters.
 
 ---
 
-## Required Output Format
+Iteration and ATS Optimization Loop
 
-The final output must strictly follow below exact json structure:
+1 Evaluate the resume using an ATS scoring model from 0 to 100 percent based on:
 
-### 📦 Required JSON Output Schema
+* Keyword match
+* Skills alignment
+* Experience relevance
+* Role and title alignment
+* Measurable impact
+* Formatting and ATS readability
+
+2 If score is below 90 percent:
+
+* Identify all gaps such as missing keywords, weak phrasing, or missing skills
+* Improve the resume by:
+
+  * Adding missing keywords naturally
+  * Strengthening bullet points with measurable impact
+  * Improving alignment with required and preferred skills
+  * Adjusting phrasing for recruiter search optimization
+  * Enhancing technical depth
+
+3 Regenerate the full resume
+
+4 Repeat until ATS score is at least 90 percent
+
+5 Output only the final optimized resume
+
+---
+
+Required JSON Output Format
 
 {
-
-  "title": "...",
-
-  "summary": "...",
-
-  "skills": ["...", "..."],
-
-  "workexperience": [
-
-    {
-
-    "companyname": "...",
-
-    "role": "...",
-
-    "duration": "MM-YYYY - MM-YYYY",
-
-    "experience": ["...", "...", "..."]
-
-    }
-
-  ]
-
+"title": "...",
+"summary": "...",
+"skills": ["...", "..."],
+"workexperience": [
+{
+"companyname": "...",
+"role": "...",
+"duration": "MMM-YYYY - MMM-YYYY",
+"experience": ["...", "...", "..."]
 }
-
-### 📝 Field Specifications & Constraints
-
-#### "title"
-
-- Generate a highly targeted, job-specific professional title matching the job description.
-- Reflect seniority, ATS-friendly, and recruiter-search optimized.
-- Must align exactly with the target role's level and domain.
-
-#### "summary"
-
-- 4–6 lines, senior-level tone, highly tailored to the job description.
-- Naturally embed top ATS keywords.
-- Highlight years of experience, core technical strengths, domain/industry expertise, and architecture/leadership capabilities.
-- Must immediately position the candidate as a strong match for the role.
-
-#### "skills"
-
-- Array of strings, maximum 45 items.
-- Prioritize exact JD keywords, top recruiter search terms, closely related technologies, industry-critical terminology, and adjacent tools.
-- Order from most critical to least.
-- No duplicates, no markdown, no trailing commas.
-
-#### "work experience"
-
-- Array of objects, one per career milestone provided.
-- Each object MUST contain:
-
-  • "company name": Exact company name from milestones.
-
-  • "role": Exact job title from milestones.
-
-  • "duration": {"start": "MM-YYYY", "end": "MM-YYYY"} matching the provided timeline.
-
-  • "experience": Array of AT LEAST 9 strings (bullet points).
-- Each bullet string must clearly explain: what project/system was built, technologies used, why chosen, business problem solved, and measurable impact delivered.
-- Preferred structure: Action + Technology + Project Scope + Business Impact.
-- Every company must reflect unique business domain, engineering priorities, system architecture, product objectives, and measurable value.
-- NO repeated bullets, sentence structures, or recycled wording.
-- Timeline Accuracy Rule: ONLY include technologies/frameworks that were publicly available during the specified start/end dates.
+]
+}
 
 ---
 
-## Title
+Field Requirements
+
+Title
 
 Generate a highly targeted and job-specific professional title that directly matches the job description.
-
 The title should reflect seniority and alignment with the target role.
 
 Examples:
@@ -158,136 +105,56 @@ Examples:
 
 The title must be ATS-friendly and recruiter-search optimized.
 
----
+Summary
 
-## Professional Summary
+* 4 to 6 lines
+* Senior level tone
+* Include key ATS keywords naturally
+* Highlight experience, technical strengths, domain expertise, and leadership
 
-Write a strong, concise, and impactful professional summary.
+Skills
 
-Requirements:
+* Maximum 50 items
+* Include all required and preferred skills from the job description
+* Include related and commonly searched technologies
+* No duplicates
 
-* 4–6 lines
-* senior-level tone
-* highly tailored to the job description
-* include top ATS keywords naturally
-* highlight years of experience
-* mention core technical strengths
-* include relevant domain/industry expertise
-* reflect architecture, development, modernization, and leadership capabilities
+Work Experience
 
-The summary must immediately position the candidate as a strong match for the role.
-
----
-
-## Skills
-
-Generate the most important and critical technical skills up to 45 items, strictly separated by commas in a single line.
-
-This section must be highly ATS-optimized and based on:
-
-1. the exact job description
-2. top recruiter search keywords
-3. closely related technologies
-4. industry-critical terminology
-5. adjacent tools and platforms commonly searched for this role
-
-The skills must prioritize the most critical technologies first.
-
-Maximum: 45 skills
-
-Format: comma-separated only
+* Minimum 9 bullet points per company
+* Each company must reflect unique domain, system, project scope, business goals, challenges and measurable outcomes
+* Each sentence must not be skills list sentence. They must be human readable, senior professional, outcome and achievement focused rather than what I did.
+* Each sentence must be a bit long and descriptive.
+* bullets must clearly describe:
+  * What project/system was built
+  * Technologies used
+  * Why those technologies were chosen
+  * Business problem solved
+  * Impact delivered without exact numbers
+* Use structure: Action plus Technology plus Scope plus Impact
+* No repeated wording or structure across bullets
 
 ---
 
-## Work Experience
+Rules
 
-This section must be the strongest part of the output.
+Timeline Accuracy
 
-For each company, generate more than 8 bullet points
+* Only include technologies available during the specified time period
 
-(minimum 9 bullet points per company).
+Tailoring
 
-Each company must have:
-
-* unique bullet points
-* unique project scope
-* unique business goals
-* unique engineering challenges
-* unique measurable outcomes
+* Fully align with job description
+* Include all required and preferred skills
+* Use role specific terminology and architecture language
 
 ---
 
-## Technical Requirements for Work Experience
+Final Output Rule
 
-Every bullet point must clearly explain:
+Return only the final JSON resume with ATS score at least 90 percent
 
-* what project/system was worked on
-* what technologies were used
-* why those technologies were chosen
-* what business problem was solved
-* what measurable impact was delivered
-
-Preferred structure:
-
-Action + Technology + Project Scope + Business Impact
-
----
-
-## Timeline Accuracy Rule
-
-All technologies must be period-accurate.
-
-Do not include tools or frameworks that were not available during that time.
-
-This rule is mandatory.
-
----
-
-## Tailoring Requirements
-
-The resume must be fully customized to the provided job description.
-
-Include:
-
-* all required skills
-* preferred skills
-* role-specific terminology
-* architecture keywords
-* domain language
-* leadership expectations
-* critical engineering keywords recruiters search for
-
----
-
-## Uniqueness Requirement
-
-Every company must reflect its own:
-
-* business domain
-* engineering priorities
-* system architecture
-* product objectives
-* measurable business value
-
-No repeated bullets.
-
-No repeated sentence structures.
-
-No recycled wording.
-
----
-
-## Final Output Rule
-
-Only output the FINAL resume version that achieves:
-
-✅ ATS Score ≥ 90%
-
-❌ Do NOT show intermediate drafts
-
-❌ Do NOT show scoring iterations unless asked
-
-The result must be production-ready and recruiter-quality.
+Do not include explanations or intermediate results
 
 Career Milestone:
 

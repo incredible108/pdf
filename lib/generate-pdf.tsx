@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
   },
   jobTitle: {
     fontSize: 14,
-    color: "#3b385a",
+    color: "#2d3542",
     marginBottom: 8,
   },
   contactRow: {
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   summaryText: {
     fontSize: 10,
     lineHeight: 1.5,
-    color: "#374151",
+    color: "#2d3542",
   },
   skillsContainer: {
     flexDirection: "row",
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 4,
     fontSize: 9,
-    color: "#374151",
+    color: "#2d3542",
   },
   experienceItem: {
     marginTop: 8,
@@ -90,11 +90,11 @@ const styles = StyleSheet.create({
   },
   experienceDuration: {
     fontSize: 9,
-    color: "#6b7280",
+    color: "#2d3542",
   },
   experienceCompany: {
     fontSize: 10,
-    color: "#4b5563",
+    color: "#2d3542",
     fontStyle: "italic",
     marginBottom: 4,
   },
@@ -108,13 +108,13 @@ const styles = StyleSheet.create({
   bullet: {
     width: 10,
     fontSize: 10,
-    color: "#374151",
+    color: "#2d3542",
   },
   bulletText: {
     flex: 1,
     fontSize: 9,
     lineHeight: 1.4,
-    color: "#374151",
+    color: "#2d3542",
   },
   educationHeader: {
     flexDirection: "row",
