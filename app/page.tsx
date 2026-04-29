@@ -260,6 +260,12 @@ export default function Home() {
 
       // Call the Python backend
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+      if (!backendUrl) {
+        setError("Backend URL not configured. Please set NEXT_PUBLIC_BACKEND_URL environment variable.")
+        setIsGenerating(false)
+        return
+      }
+      console.log("Using backend URL:", backendUrl)
       const response = await fetch(`${backendUrl}/scrape-deepseek`, {
         method: "POST",
         headers: {
