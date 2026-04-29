@@ -12,7 +12,7 @@ interface ResumePreviewProps {
   editable?: boolean
   onDataChange?: (data: ResumeData) => void
 }
-
+``
 export function ResumePreview({ data, editable = false, onDataChange }: ResumePreviewProps) {
   const { personalInfo, education, summary, skills, workexperience, title } = data
 

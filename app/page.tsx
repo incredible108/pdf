@@ -306,6 +306,7 @@ export default function Home() {
 
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewEditable, setPreviewEditable] = useState(false)
   // const [promptOpen, setPromptOpen] = useState(false)
 
   // Load saved data on mount (prompt is no longer loaded from storage)
@@ -343,6 +344,9 @@ export default function Home() {
   }, [])
 
   // Prompt is no longer saved to localStorage
+  const handlePreviewEditable = () => {
+    setPreviewEditable(!previewEditable)
+  }
 
   const handleSaveSettings = () => {
     localStorage.setItem(STORAGE_KEY_PERSONAL, JSON.stringify(personalInfo))
@@ -700,7 +704,8 @@ Software Engineer, 09/2015 - 09/2019
             <div className="border rounded-lg overflow-hidden shadow-sm my-4">
               <ResumePreview
                 data={resumeData}
-                editable={false}
+                editable={previewEditable}
+                onDataChange={setResumeData}
               />
             </div>
           )}
@@ -708,6 +713,9 @@ Software Engineer, 09/2015 - 09/2019
           <DialogFooter>
             <Button variant="outline" onClick={() => setPreviewOpen(false)}>
               Close
+            </Button>
+            <Button variant="outline" onClick={() => handlePreviewEditable()}>
+              {previewEditable ? "Done" : "Edit"}
             </Button>
             <Button onClick={handleDownloadPDF}>
               <FileDown className="h-4 w-4 mr-2" />
