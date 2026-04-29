@@ -2,14 +2,11 @@
 
 # dependencies
 /node_modules
-<<<<<<< HEAD
-=======
 /.pnp
 .pnp.js
 
 # testing
 /coverage
->>>>>>> c41fd036994950c1317c4cae4e980c7018935d2b
 
 # next.js
 /.next/
@@ -18,28 +15,18 @@
 # production
 /build
 
-<<<<<<< HEAD
-=======
 # misc
 .DS_Store
 *.pem
 
->>>>>>> c41fd036994950c1317c4cae4e980c7018935d2b
+# env files
+.env*.local
+
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-<<<<<<< HEAD
 .pnpm-debug.log*
-
-# env files
-.env*
-=======
-
-# local env files
-.env*.local
-.env
->>>>>>> c41fd036994950c1317c4cae4e980c7018935d2b
 
 # vercel
 .vercel
