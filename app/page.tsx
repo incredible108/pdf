@@ -36,7 +36,7 @@ The system must iterate and improve the resume until the ATS score exceeds 90 pe
 
 Return result only. Do not include explanations, notes, or intermediate versions.
 
-Use only standard alphabetic letters, numbers, and basic punctuation. Do not use special styled characters.
+The content should only consists with alphabetic letters, numbers, mathmatic operations. do not make special letters like "𝑣𝑠"
 
 ---
 
