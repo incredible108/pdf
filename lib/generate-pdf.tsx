@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     color: "#374151",
   },
   experienceItem: {
-    marginBottom: 12,
+    marginTop: 8,
   },
   experienceHeader: {
     flexDirection: "row",
@@ -187,7 +187,7 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Professional Experience</Text>
             {professionalExperience.map((exp, index) => (
-              <View key={index} style={styles.experienceItem}>
+              <View key={index} style={index == 0 ? undefined : styles.experienceItem}>
                 <View style={styles.experienceHeader}>
                   <Text style={styles.experienceRole}>{exp.role}</Text>
                   {exp.duration && <Text style={styles.experienceDuration}>{exp.duration}</Text>}
