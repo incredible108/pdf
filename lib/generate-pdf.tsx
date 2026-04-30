@@ -209,7 +209,7 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
         )}
 
         {/* Education */}
-        <View style={styles.section}>
+        <View style={styles.section} wrap={false}>
           <Text style={styles.sectionTitle}>Education</Text>
           {education.map((edu, index) => (
             <View key={index} style={[styles.educationHeader, index > 0 && { marginTop: 8 }]}>
