@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
 
 // Resume PDF Document Component
 const ResumeDocument = ({ data }: { data: ResumeData }) => {
-  const { personalInfo, education, summary, skills, workexperience, title } = data
+  const { personalInfo, education, summary, skills, workexperience } = data
 
   const contactItems = [personalInfo.phone, personalInfo.email, personalInfo.location].filter(Boolean)
 
@@ -149,7 +149,7 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.name}>{personalInfo.fullName}</Text>
-          <Text style={styles.jobTitle}>{title}</Text>
+          <Text style={styles.jobTitle}>{personalInfo.title}</Text>
           <View style={styles.contactRow}>
             {contactItems.map((item, index) => (
               <View key={index} style={{ flexDirection: "row" }}>

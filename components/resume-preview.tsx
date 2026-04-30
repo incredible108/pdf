@@ -14,7 +14,7 @@ interface ResumePreviewProps {
 }
 ``
 export function ResumePreview({ data, editable = false, onDataChange }: ResumePreviewProps) {
-  const { personalInfo, education, summary, skills, workexperience, title } = data
+  const { personalInfo, education, summary, skills, workexperience } = data
 
   const updateData = (updates: Partial<ResumeData>) => {
     if (onDataChange) {
@@ -30,10 +30,6 @@ export function ResumePreview({ data, editable = false, onDataChange }: ResumePr
 
   const updateSummary = (value: string) => {
     updateData({ summary: value })
-  }
-
-  const updateTitle = (value: string) => {
-    updateData({ title: value })
   }
 
   const updateSkill = (index: number, value: string) => {
@@ -176,8 +172,8 @@ export function ResumePreview({ data, editable = false, onDataChange }: ResumePr
               placeholder="Full Name"
             />
             <Input
-              value={title}
-              onChange={(e) => updateTitle(e.target.value)}
+              value={personalInfo.title}
+              onChange={(e) => updatePersonalInfo("title", e.target.value)}
               className="text-lg text-gray-700 mb-2 text-center bg-white/50 border-dashed h-auto py-1"
               placeholder="Job Title"
             />
@@ -213,7 +209,7 @@ export function ResumePreview({ data, editable = false, onDataChange }: ResumePr
             <h1 className="text-3xl font-bold tracking-wide uppercase mb-1">
               {personalInfo.fullName}
             </h1>
-            <p className="text-lg text-gray-700 mb-2">{title}</p>
+            <p className="text-lg text-gray-700 mb-2">{personalInfo.title}</p>
             <div className="flex justify-center items-center gap-4 text-sm text-gray-600 flex-wrap">
               <span>{personalInfo.phone}</span>
               <span className="hidden sm:inline">|</span>

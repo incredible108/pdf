@@ -73,7 +73,6 @@ Iteration and ATS Optimization Loop
 Required JSON Output Format
 
 {
-"title": "...",
 "summary": "...",
 "skills": ["...", "..."],
 "workexperience": [
@@ -89,21 +88,6 @@ Required JSON Output Format
 ---
 
 Field Requirements
-
-Title
-
-Generate a highly targeted and job-specific professional title that directly matches the job description.
-The title should reflect seniority and alignment with the target role.
-
-Examples:
-
-* Senior Full Stack Software Engineer
-* Senior .NET / React Engineer
-* Principal Software Engineer
-* Senior Cloud Application Developer
-* Lead Backend Engineer
-
-The title must be ATS-friendly and recruiter-search optimized.
 
 Summary
 
@@ -122,6 +106,7 @@ Skills
 Work Experience
 
 * Minimum 9 bullet points per company
+* Work experience from all companies (mentioned in Career Milestone) must be included and fully detailed
 * Each company must reflect unique domain, system, project scope, business goals, challenges and measurable outcomes
 * Each sentence must not be skills list sentence. They must be human readable, senior professional, outcome and achievement focused rather than what I did.
 * Each sentence must be a bit long and descriptive.
@@ -130,7 +115,7 @@ Work Experience
   * Technologies used
   * Why those technologies were chosen
   * Business problem solved
-  * Impact delivered without exact numbers
+  * Impact delivered without EXACT numbers
 * Use structure: Action plus Technology plus Scope plus Impact
 * No repeated wording or structure across bullets
 
@@ -301,7 +286,6 @@ export default function Home() {
         summary: parsed.summary || "",
         skills: parsed.skills || [],
         workexperience: parsed.workexperience || [],
-        title: parsed.title || "",
       }
 
       setResumeData(fullResumeData)
@@ -457,6 +441,15 @@ Software Engineer, 09/2015 - 09/2019
                     />
                   </Field>
                   <Field>
+                    <FieldLabel>Title</FieldLabel>
+                    <Input
+                      value={personalInfo.title}
+                      onChange={(e) => setPersonalInfo({ ...personalInfo, title: e.target.value })}
+                    />
+                  </Field>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <Field>
                     <FieldLabel>Email</FieldLabel>
                     <Input
                       type="email"
@@ -464,8 +457,6 @@ Software Engineer, 09/2015 - 09/2019
                       onChange={(e) => setPersonalInfo({ ...personalInfo, email: e.target.value })}
                     />
                   </Field>
-                </div>
-                <div className="grid sm:grid-cols-2 gap-4">
                   <Field>
                     <FieldLabel>Phone</FieldLabel>
                     <Input
@@ -473,6 +464,8 @@ Software Engineer, 09/2015 - 09/2019
                       onChange={(e) => setPersonalInfo({ ...personalInfo, phone: e.target.value })}
                     />
                   </Field>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
                   <Field>
                     <FieldLabel>Location</FieldLabel>
                     <Input

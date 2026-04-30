@@ -6,6 +6,7 @@ export interface Education {
 
 export type PersonalInfo = {
   fullName: string
+  title: string
   phone: string
   email: string
   location: string
@@ -13,7 +14,6 @@ export type PersonalInfo = {
 }
 
 export interface ResumeData {
-  title: string
   personalInfo: PersonalInfo
   education: Education[]
   summary: string
@@ -28,6 +28,7 @@ export interface ResumeData {
 
 export const DEFAULT_PERSONAL_INFO: PersonalInfo = {
   fullName: "",
+  title: "",
   phone: "",
   email: "",
   location: "",
