@@ -202,7 +202,7 @@ export const ClassicTemplate = ({ data }: { data: ResumeData }) => {
         <View style={styles.section} wrap={false}>
           <Text style={styles.sectionTitle}>Education</Text>
           {education.map((edu, index) => (
-            <View key={index} style={[styles.educationHeader, index > 0 && { marginTop: 8 }]}>
+            <View key={index} style={[styles.educationHeader, index > 0 ? { marginTop: 8 } : {}]}>
               <View>
                 <Text style={styles.educationDegree}>{edu.degree}</Text>
                 <Text style={styles.educationSchool}>{edu.school}</Text>
