@@ -7,6 +7,11 @@ import { ModernTemplate } from "./modern"
 import { MinimalTemplate } from "./minimal"
 import { ExecutiveTemplate } from "./executive"
 import { CreativeTemplate } from "./creative"
+import { AcademicTemplate } from "./academic"
+import { TechTemplate } from "./tech"
+import { ElegantTemplate } from "./elegant"
+import { BoldTemplate } from "./bold"
+import { CorporateTemplate } from "./corporate"
 
 export { TEMPLATES, DEFAULT_TEMPLATE } from "./types"
 export type { TemplateId, TemplateInfo } from "./types"
@@ -17,6 +22,11 @@ const templateComponents: Record<TemplateId, React.ComponentType<{ data: ResumeD
   minimal: MinimalTemplate,
   executive: ExecutiveTemplate,
   creative: CreativeTemplate,
+  academic: AcademicTemplate,
+  tech: TechTemplate,
+  elegant: ElegantTemplate,
+  bold: BoldTemplate,
+  corporate: CorporateTemplate,
 }
 
 export async function generateResumePDF(
