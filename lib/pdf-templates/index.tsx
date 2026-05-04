@@ -6,7 +6,6 @@ import { ClassicTemplate } from "./classic"
 import { ModernTemplate } from "./modern"
 import { MinimalTemplate } from "./minimal"
 import { ExecutiveTemplate } from "./executive"
-import { CreativeTemplate } from "./creative"
 import { AcademicTemplate } from "./academic"
 import { TechTemplate } from "./tech"
 import { ElegantTemplate } from "./elegant"
@@ -21,7 +20,6 @@ const templateComponents: Record<TemplateId, React.ComponentType<{ data: ResumeD
   modern: ModernTemplate,
   minimal: MinimalTemplate,
   executive: ExecutiveTemplate,
-  creative: CreativeTemplate,
   academic: AcademicTemplate,
   tech: TechTemplate,
   elegant: ElegantTemplate,

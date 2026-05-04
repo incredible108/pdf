@@ -1,6 +1,6 @@
 import type { ResumeData } from "../parse-resume"
 
-export type TemplateId = "classic" | "modern" | "minimal" | "executive" | "creative" | "academic" | "tech" | "elegant" | "bold" | "corporate"
+export type TemplateId = "classic" | "modern" | "minimal" | "executive" | "academic" | "tech" | "elegant" | "bold" | "corporate"
 
 export interface TemplateInfo {
   id: TemplateId
@@ -11,6 +11,7 @@ export interface TemplateInfo {
     secondary: string
     accent: string
   }
+  previewImage: string
 }
 
 export const TEMPLATES: TemplateInfo[] = [
@@ -23,6 +24,7 @@ export const TEMPLATES: TemplateInfo[] = [
       secondary: "#2d3542",
       accent: "#d1d5db",
     },
+    previewImage: "/templates/classic-preview.png",
   },
   {
     id: "modern",
@@ -33,6 +35,7 @@ export const TEMPLATES: TemplateInfo[] = [
       secondary: "#475569",
       accent: "#3b82f6",
     },
+    previewImage: "/templates/modern-preview.png",
   },
   {
     id: "minimal",
@@ -43,6 +46,7 @@ export const TEMPLATES: TemplateInfo[] = [
       secondary: "#525252",
       accent: "#a3a3a3",
     },
+    previewImage: "/templates/minimal-preview.png",
   },
   {
     id: "executive",
@@ -53,16 +57,7 @@ export const TEMPLATES: TemplateInfo[] = [
       secondary: "#374151",
       accent: "#b8860b",
     },
-  },
-  {
-    id: "creative",
-    name: "Creative",
-    description: "Unique layout with accent sidebar",
-    previewColors: {
-      primary: "#7c3aed",
-      secondary: "#4b5563",
-      accent: "#8b5cf6",
-    },
+    previewImage: "/templates/executive-preview.png",
   },
   {
     id: "academic",
@@ -73,6 +68,7 @@ export const TEMPLATES: TemplateInfo[] = [
       secondary: "#444444",
       accent: "#333333",
     },
+    previewImage: "/templates/academic-preview.png",
   },
   {
     id: "tech",
@@ -83,6 +79,7 @@ export const TEMPLATES: TemplateInfo[] = [
       secondary: "#666666",
       accent: "#00D4AA",
     },
+    previewImage: "/templates/tech-preview.png",
   },
   {
     id: "elegant",
@@ -93,6 +90,7 @@ export const TEMPLATES: TemplateInfo[] = [
       secondary: "#666666",
       accent: "#C9A962",
     },
+    previewImage: "/templates/elegant-preview.png",
   },
   {
     id: "bold",
@@ -103,6 +101,7 @@ export const TEMPLATES: TemplateInfo[] = [
       secondary: "#666666",
       accent: "#E94560",
     },
+    previewImage: "/templates/bold-preview.png",
   },
   {
     id: "corporate",
@@ -113,6 +112,7 @@ export const TEMPLATES: TemplateInfo[] = [
       secondary: "#555555",
       accent: "#003366",
     },
+    previewImage: "/templates/corporate-preview.png",
   },
 ]
 

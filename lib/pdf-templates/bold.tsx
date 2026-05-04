@@ -1,5 +1,5 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer"
-import type { ResumeData, PDFTemplateProps } from "./types"
+import type { ResumeData } from "../parse-resume"
 
 const styles = StyleSheet.create({
   page: {
@@ -10,18 +10,18 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   header: {
-    marginBottom: 25,
-    backgroundColor: "#1A1A2E",
     margin: -40,
     marginBottom: 25,
+    backgroundColor: "#1A1A2E",
     padding: 35,
     paddingTop: 40,
+    paddingBottom: 30
   },
   name: {
     fontSize: 32,
     fontFamily: "Helvetica-Bold",
     color: "#FFFFFF",
-    marginBottom: 8,
+    marginBottom: 28,
     textTransform: "uppercase",
     letterSpacing: 2,
   },
@@ -50,8 +50,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textTransform: "uppercase",
     letterSpacing: 1,
-    paddingBottom: 6,
-    borderBottom: "3pt solid #E94560",
+    paddingBottom: 4,
+    borderBottom: "2pt solid #E94560",
   },
   summaryText: {
     fontSize: 10,
@@ -86,6 +86,15 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: "#666666",
   },
+  bulletItem: {
+    flexDirection: "row",
+    marginBottom: 3,
+  },
+  bullet: {
+    width: 10,
+    fontSize: 10,
+    color: "#444444",
+  },
   bulletPoint: {
     fontSize: 9,
     color: "#444444",
@@ -111,72 +120,49 @@ const styles = StyleSheet.create({
   skillsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: 5,
   },
   skillItem: {
     fontSize: 9,
     color: "#FFFFFF",
     backgroundColor: "#1A1A2E",
-    padding: "6 12",
+    padding: "6 4",
     fontFamily: "Helvetica-Bold",
   },
 })
 
-export function BoldTemplate({ data }: PDFTemplateProps) {
+export function BoldTemplate({ data }: { data: ResumeData }) {
+  const { personalInfo, education, summary, skills, workexperience } = data
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.name}>{data.personalInfo.fullName}</Text>
-          <View style={styles.titleUnderline} />
+          <Text style={styles.name}>{personalInfo.fullName}</Text>
           <View style={styles.contactRow}>
-            <Text style={styles.contactItem}>{data.personalInfo.email}</Text>
-            <Text style={styles.contactItem}>{data.personalInfo.phone}</Text>
-            <Text style={styles.contactItem}>{data.personalInfo.location}</Text>
-            {data.personalInfo.linkedin && (
-              <Text style={styles.contactItem}>{data.personalInfo.linkedin}</Text>
+            <Text style={styles.contactItem}>{personalInfo.email}</Text>
+            <Text style={styles.contactItem}>{personalInfo.phone}</Text>
+            <Text style={styles.contactItem}>{personalInfo.location}</Text>
+            {personalInfo.linkedin && (
+              <Text style={styles.contactItem}>{personalInfo.linkedin}</Text>
             )}
           </View>
         </View>
 
         {/* Summary */}
-        {data.summary && (
+        {summary && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Profile</Text>
-            <Text style={styles.summaryText}>{data.summary}</Text>
-          </View>
-        )}
-
-        {/* Experience */}
-        {data.experience && data.experience.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Experience</Text>
-            {data.experience.map((exp, index) => (
-              <View key={index} style={styles.experienceItem}>
-                <View style={styles.experienceHeader}>
-                  <Text style={styles.jobTitle}>{exp.title}</Text>
-                  <View style={styles.companyDate}>
-                    <Text style={styles.company}>{exp.company}</Text>
-                    <Text style={styles.dateRange}>{exp.date}</Text>
-                  </View>
-                </View>
-                {exp.highlights.map((highlight, hIndex) => (
-                  <Text key={hIndex} style={styles.bulletPoint}>
-                    ■ {highlight}
-                  </Text>
-                ))}
-              </View>
-            ))}
+            <Text style={styles.sectionTitle}>Summary</Text>
+            <Text style={styles.summaryText}>{summary}</Text>
           </View>
         )}
 
         {/* Skills */}
-        {data.skills && data.skills.length > 0 && (
+        {skills && skills.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Skills</Text>
             <View style={styles.skillsContainer}>
-              {data.skills.map((skill, index) => (
+              {skills.map((skill, index) => (
                 <Text key={index} style={styles.skillItem}>
                   {skill}
                 </Text>
@@ -185,15 +171,39 @@ export function BoldTemplate({ data }: PDFTemplateProps) {
           </View>
         )}
 
+        {/* Experience */}
+        {workexperience && workexperience.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Experience</Text>
+            {workexperience.map((exp, index) => (
+              <View key={index} style={styles.experienceItem}>
+                <View style={styles.experienceHeader}>
+                  <Text style={styles.jobTitle}>{exp.role}</Text>
+                  <View style={styles.companyDate}>
+                    <Text style={styles.company}>{exp.companyname}</Text>
+                    <Text style={styles.dateRange}>{exp.duration}</Text>
+                  </View>
+                </View>
+                {exp.experience.map((highlight, hIndex) => (
+                  <View key={hIndex} style={styles.bulletItem} wrap={false}>
+                    <Text style={styles.bullet}>•</Text>
+                    <Text style={styles.bulletPoint}>{highlight}</Text>
+                  </View>
+                ))}
+              </View>
+            ))}
+          </View>
+        )}
+
         {/* Education */}
-        {data.education && data.education.length > 0 && (
+        {education && education.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Education</Text>
-            {data.education.map((edu, index) => (
+            {education.map((edu, index) => (
               <View key={index} style={[styles.educationItem, index > 0 ? { marginTop: 8 } : {}]}>
                 <Text style={styles.degree}>{edu.degree}</Text>
                 <Text style={styles.institution}>
-                  {edu.institution} | {edu.year}
+                  {edu.school} | {edu.year}
                 </Text>
               </View>
             ))}

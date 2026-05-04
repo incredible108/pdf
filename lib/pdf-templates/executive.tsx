@@ -158,14 +158,14 @@ export const ExecutiveTemplate = ({ data }: { data: ResumeData }) => {
 
         {summary && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Executive Summary</Text>
+            <Text style={styles.sectionTitle}>Summary</Text>
             <Text style={styles.summaryText}>{summary}</Text>
           </View>
         )}
 
         {skills.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Core Competencies</Text>
+            <Text style={styles.sectionTitle}>Technical Skills</Text>
             <View style={styles.skillsContainer}>
               {skills.map((skill, index) => (
                 <Text key={index} style={styles.skillBadge}>{skill}</Text>
@@ -189,7 +189,7 @@ export const ExecutiveTemplate = ({ data }: { data: ResumeData }) => {
                 <View style={styles.bulletList}>
                   {exp.experience.map((bullet, bulletIndex) => (
                     <View key={bulletIndex} style={styles.bulletItem} wrap={false}>
-                      <Text style={styles.bullet}>◆</Text>
+                      <Text style={styles.bullet}>•</Text>
                       <Text style={styles.bulletText}>{bullet}</Text>
                     </View>
                   ))}

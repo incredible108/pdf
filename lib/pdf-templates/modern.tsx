@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     color: "#475569",
   },
   section: {
-    marginBottom: 16,
+    marginBottom: 4,
   },
   sectionTitle: {
     fontSize: 11,
@@ -46,7 +46,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
     color: "#3b82f6",
     marginBottom: 10,
-    paddingBottom: 4,
     borderBottomWidth: 1,
     borderBottomColor: "#e2e8f0",
   },
@@ -87,7 +86,7 @@ const styles = StyleSheet.create({
     color: "#64748b",
     backgroundColor: "#f1f5f9",
     paddingVertical: 2,
-    paddingHorizontal: 6,
+    paddingHorizontal: 4,
     borderRadius: 4,
   },
   experienceCompany: {
@@ -155,14 +154,14 @@ export const ModernTemplate = ({ data }: { data: ResumeData }) => {
 
         {summary && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>About Me</Text>
+            <Text style={styles.sectionTitle}>Summary</Text>
             <Text style={styles.summaryText}>{summary}</Text>
           </View>
         )}
 
         {skills.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Skills</Text>
+            <Text style={styles.sectionTitle}>Technical Skills</Text>
             <View style={styles.skillsContainer}>
               {skills.map((skill, index) => (
                 <Text key={index} style={styles.skillBadge}>{skill}</Text>
@@ -186,7 +185,7 @@ export const ModernTemplate = ({ data }: { data: ResumeData }) => {
                 <View style={styles.bulletList}>
                   {exp.experience.map((bullet, bulletIndex) => (
                     <View key={bulletIndex} style={styles.bulletItem} wrap={false}>
-                      <Text style={styles.bullet}>→</Text>
+                      <Text style={styles.bullet}>•</Text>
                       <Text style={styles.bulletText}>{bullet}</Text>
                     </View>
                   ))}

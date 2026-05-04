@@ -163,7 +163,7 @@ export const MinimalTemplate = ({ data }: { data: ResumeData }) => {
             <View style={styles.skillsContainer}>
               {skills.map((skill, index) => (
                 <Text key={index} style={styles.skillBadge}>
-                  {skill}{index < skills.length - 1 ? " /" : ""}
+                  {skill}{index < skills.length - 1 ? " ," : ""}
                 </Text>
               ))}
             </View>

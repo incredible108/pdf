@@ -1,5 +1,5 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer"
-import type { ResumeData, PDFTemplateProps } from "./types"
+import type { ResumeData } from "../parse-resume"
 
 const styles = StyleSheet.create({
   page: {
@@ -73,7 +73,15 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: "#333333",
     marginLeft: 15,
-    marginBottom: 2,
+  },
+  bulletItem: {
+    flexDirection: "row",
+    marginBottom: 3,
+  },
+  bullet: {
+    width: 10,
+    fontSize: 10,
+    color: "#333333",
   },
   educationItem: {
     marginBottom: 8,
@@ -101,49 +109,67 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: "#333333",
     backgroundColor: "#f5f5f5",
-    padding: "4 8",
+    padding: "4 6",
     borderRadius: 2,
   },
 })
 
-export function AcademicTemplate({ data }: PDFTemplateProps) {
+export function AcademicTemplate({ data }: { data: ResumeData }) {
+  const { personalInfo, education, summary, skills, workexperience } = data
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.name}>{data.personalInfo.fullName}</Text>
+          <Text style={styles.name}>{personalInfo.fullName}</Text>
           <Text style={styles.contactInfo}>
-            {data.personalInfo.email} | {data.personalInfo.phone} | {data.personalInfo.location}
+            {personalInfo.email} | {personalInfo.phone} | {personalInfo.location}
           </Text>
-          {data.personalInfo.linkedin && (
-            <Text style={styles.contactInfo}>{data.personalInfo.linkedin}</Text>
+          {personalInfo.linkedin && (
+            <Text style={styles.contactInfo}>{personalInfo.linkedin}</Text>
           )}
         </View>
 
         {/* Summary */}
-        {data.summary && (
+        {summary && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Professional Summary</Text>
-            <Text style={styles.summaryText}>{data.summary}</Text>
+            <Text style={styles.summaryText}>{summary}</Text>
+          </View>
+        )}
+
+        {/* Skills */}
+        {skills && skills.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Technical Skills</Text>
+            <View style={styles.skillsContainer}>
+              {skills.map((skill, index) => (
+                <Text key={index} style={styles.skillItem}>
+                  {skill}
+                </Text>
+              ))}
+            </View>
           </View>
         )}
 
         {/* Experience */}
-        {data.experience && data.experience.length > 0 && (
+        {workexperience && workexperience.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Professional Experience</Text>
-            {data.experience.map((exp, index) => (
+            {workexperience.map((exp, index) => (
               <View key={index} style={styles.experienceItem}>
-                <View style={styles.experienceHeader}>
-                  <Text style={styles.jobTitle}>{exp.title}</Text>
-                  <Text style={styles.dateRange}>{exp.date}</Text>
+                <View wrap={false}>
+                  <View style={styles.experienceHeader}>
+                    <Text style={styles.jobTitle}>{exp.role}</Text>
+                    <Text style={styles.dateRange}>{exp.duration}</Text>
+                  </View>
+                  <Text style={styles.company}>{exp.companyname}</Text>
                 </View>
-                <Text style={styles.company}>{exp.company}</Text>
-                {exp.highlights.map((highlight, hIndex) => (
-                  <Text key={hIndex} style={styles.bulletPoint}>
-                    • {highlight}
-                  </Text>
+                {exp.experience.map((highlight, hIndex) => (
+                  <View key={hIndex} style={styles.bulletItem} wrap={false}>
+                    <Text style={styles.bullet}>•</Text>
+                    <Text style={styles.bulletPoint}>{highlight}</Text>
+                  </View>
                 ))}
               </View>
             ))}
@@ -151,32 +177,18 @@ export function AcademicTemplate({ data }: PDFTemplateProps) {
         )}
 
         {/* Education */}
-        {data.education && data.education.length > 0 && (
+        {education && education.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Education</Text>
-            {data.education.map((edu, index) => (
+            {education.map((edu, index) => (
               <View key={index} style={[styles.educationItem, index > 0 ? { marginTop: 8 } : {}]}>
                 <View style={styles.educationHeader}>
                   <Text style={styles.degree}>{edu.degree}</Text>
                   <Text style={styles.dateRange}>{edu.year}</Text>
                 </View>
-                <Text style={styles.institution}>{edu.institution}</Text>
+                <Text style={styles.institution}>{edu.school}</Text>
               </View>
             ))}
-          </View>
-        )}
-
-        {/* Skills */}
-        {data.skills && data.skills.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Areas of Expertise</Text>
-            <View style={styles.skillsContainer}>
-              {data.skills.map((skill, index) => (
-                <Text key={index} style={styles.skillItem}>
-                  {skill}
-                </Text>
-              ))}
-            </View>
           </View>
         )}
       </Page>

@@ -1,5 +1,5 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer"
-import type { ResumeData, PDFTemplateProps } from "./types"
+import type { ResumeData } from "../parse-resume"
 
 const styles = StyleSheet.create({
   page: {
@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontFamily: "Helvetica",
     color: "#2C2C2C",
-    marginBottom: 8,
+    marginBottom: 18,
     letterSpacing: 3,
     textTransform: "uppercase",
   },
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   section: {
-    marginBottom: 18,
+    marginBottom: 9,
   },
   sectionTitle: {
     fontSize: 10,
@@ -48,7 +48,6 @@ const styles = StyleSheet.create({
   summaryText: {
     fontSize: 10,
     color: "#444444",
-    textAlign: "center",
     paddingHorizontal: 30,
     lineHeight: 1.7,
     fontStyle: "italic",
@@ -75,11 +74,19 @@ const styles = StyleSheet.create({
     color: "#888888",
     marginTop: 2,
   },
+  bulletItem: {
+    flexDirection: "row",
+    marginBottom: 3,
+  },
+  bullet: {
+    width: 10,
+    fontSize: 10,
+    color: "#555555",
+  },
   bulletPoint: {
     fontSize: 9,
     color: "#555555",
-    marginTop: 4,
-    textAlign: "center",
+    marginBottom: 4,
     paddingHorizontal: 20,
   },
   educationItem: {
@@ -99,15 +106,14 @@ const styles = StyleSheet.create({
   skillsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "center",
     gap: 8,
     paddingHorizontal: 20,
   },
   skillItem: {
     fontSize: 9,
     color: "#2C2C2C",
-    padding: "4 12",
-    borderRadius: 12,
+    padding: "4 4",
+    borderRadius: 10,
     border: "0.5pt solid #C9A962",
   },
   sectionDivider: {
@@ -119,43 +125,59 @@ const styles = StyleSheet.create({
   },
 })
 
-export function ElegantTemplate({ data }: PDFTemplateProps) {
+export function ElegantTemplate({ data }: { data: ResumeData }) {
+  const { personalInfo, education, summary, skills, workexperience } = data
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.name}>{data.personalInfo.fullName}</Text>
+          <Text style={styles.name}>{personalInfo.fullName}</Text>
           <View style={styles.divider} />
           <Text style={styles.contactInfo}>
-            {data.personalInfo.email}  •  {data.personalInfo.phone}  •  {data.personalInfo.location}
+            {personalInfo.email}  •  {personalInfo.phone}  •  {personalInfo.location}
           </Text>
         </View>
 
         {/* Summary */}
-        {data.summary && (
+        {summary && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Profile</Text>
-            <Text style={styles.summaryText}>{data.summary}</Text>
+            <Text style={styles.summaryText}>{summary}</Text>
             <View style={styles.sectionDivider} />
           </View>
         )}
 
+        {/* Skills */}
+        {skills && skills.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Expertise</Text>
+            <View style={styles.skillsContainer}>
+              {skills.map((skill, index) => (
+                <Text key={index} style={styles.skillItem}>
+                  {skill}
+                </Text>
+              ))}
+            </View>
+          </View>
+        )}
+
         {/* Experience */}
-        {data.experience && data.experience.length > 0 && (
+        {workexperience && workexperience.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Experience</Text>
-            {data.experience.map((exp, index) => (
+            {workexperience.map((exp, index) => (
               <View key={index} style={styles.experienceItem}>
                 <View style={styles.experienceHeader}>
-                  <Text style={styles.jobTitle}>{exp.title}</Text>
-                  <Text style={styles.company}>{exp.company}</Text>
-                  <Text style={styles.dateRange}>{exp.date}</Text>
+                  <Text style={styles.jobTitle}>{exp.role}</Text>
+                  <Text style={styles.company}>{exp.companyname}</Text>
+                  <Text style={styles.dateRange}>{exp.duration}</Text>
                 </View>
-                {exp.highlights.map((highlight, hIndex) => (
-                  <Text key={hIndex} style={styles.bulletPoint}>
-                    {highlight}
-                  </Text>
+                {exp.experience.map((highlight, hIndex) => (
+                  <View key={hIndex} style={styles.bulletItem} wrap={false}>
+                    <Text style={styles.bullet}>•</Text>
+                    <Text style={styles.bulletPoint}>{highlight}</Text>
+                  </View>
                 ))}
               </View>
             ))}
@@ -164,14 +186,14 @@ export function ElegantTemplate({ data }: PDFTemplateProps) {
         )}
 
         {/* Education */}
-        {data.education && data.education.length > 0 && (
+        {education && education.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Education</Text>
-            {data.education.map((edu, index) => (
+            {education.map((edu, index) => (
               <View key={index} style={[styles.educationItem, index > 0 ? { marginTop: 8 } : {}]}>
                 <Text style={styles.degree}>{edu.degree}</Text>
                 <Text style={styles.institution}>
-                  {edu.institution}  •  {edu.year}
+                  {edu.school}  •  {edu.year}
                 </Text>
               </View>
             ))}
@@ -179,19 +201,6 @@ export function ElegantTemplate({ data }: PDFTemplateProps) {
           </View>
         )}
 
-        {/* Skills */}
-        {data.skills && data.skills.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Expertise</Text>
-            <View style={styles.skillsContainer}>
-              {data.skills.map((skill, index) => (
-                <Text key={index} style={styles.skillItem}>
-                  {skill}
-                </Text>
-              ))}
-            </View>
-          </View>
-        )}
       </Page>
     </Document>
   )
