@@ -17,6 +17,8 @@ import { FunnyLoadingBar } from "@/components/funny-loading-bar"
 import { Input } from "@/components/ui/input"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { TemplateSelector } from "@/components/template-selector"
+import { DEFAULT_TEMPLATE, type TemplateId } from "@/lib/pdf-templates"
 import {
   Dialog,
   DialogContent,
@@ -29,6 +31,7 @@ import {
 const STORAGE_KEY_PERSONAL = "resume_personal_info"
 const STORAGE_KEY_EDUCATION = "resume_education"
 const STORAGE_KEY_CAREER_MILESTONES = "resume_career_milestones"
+const STORAGE_KEY_TEMPLATE = "resume_template"
 
 const PROMPT_TEXT = `Generate a fully tailored, ATS optimized, professionally written resume based on the provided career milestones and job description.
 
@@ -155,6 +158,7 @@ export default function Home() {
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>(DEFAULT_PERSONAL_INFO)
   const [education, setEducation] = useState<Education[]>(DEFAULT_EDUCATION)
   const [careerMilestones, setCareerMilestones] = useState("")
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>(DEFAULT_TEMPLATE)
 
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
@@ -193,6 +197,11 @@ export default function Home() {
     if (savedCareerMilestone) {
       setCareerMilestones(savedCareerMilestone)
     }
+
+    const savedTemplate = localStorage.getItem(STORAGE_KEY_TEMPLATE)
+    if (savedTemplate) {
+      setSelectedTemplate(savedTemplate as TemplateId)
+    }
   }, [])
 
   // Prompt is no longer saved to localStorage
@@ -204,6 +213,7 @@ export default function Home() {
     localStorage.setItem(STORAGE_KEY_PERSONAL, JSON.stringify(personalInfo))
     localStorage.setItem(STORAGE_KEY_EDUCATION, JSON.stringify(education))
     localStorage.setItem(STORAGE_KEY_CAREER_MILESTONES, careerMilestones)
+    localStorage.setItem(STORAGE_KEY_TEMPLATE, selectedTemplate)
     setSettingsOpen(false)
   }
 
@@ -302,9 +312,9 @@ export default function Home() {
     if (!resumeData) return
 
     try {
-      const { generateResumePDF } = await import("@/lib/generate-pdf")
+      const { generateResumePDF } = await import("@/lib/pdf-templates")
       const filename = `${personalInfo.fullName.replace(/\s+/g, "_")}_Resume.pdf`
-      await generateResumePDF(resumeData, filename)
+      await generateResumePDF(resumeData, filename, selectedTemplate)
     } catch (error) {
       console.error("PDF generation error:", error)
       setError("Failed to generate PDF. Please try again.")
@@ -535,6 +545,18 @@ Software Engineer, 09/2015 - 09/2019
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* PDF Template Selection */}
+            <div>
+              <h3 className="text-sm font-medium mb-3">PDF Template</h3>
+              <p className="text-xs text-muted-foreground mb-3">
+                Choose a template style for your PDF resume download.
+              </p>
+              <TemplateSelector
+                value={selectedTemplate}
+                onChange={setSelectedTemplate}
+              />
             </div>
           </div>
 
