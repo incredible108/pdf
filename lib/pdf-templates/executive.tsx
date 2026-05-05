@@ -1,120 +1,122 @@
-import { pdf, Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer"
-import type { ResumeData } from "./parse-resume"
+import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer"
+import type { ResumeData } from "../parse-resume"
 
-// Create styles matching the resume preview
 const styles = StyleSheet.create({
   page: {
     padding: 40,
     fontFamily: "Times-Roman",
     fontSize: 10,
-    color: "#1a1a1a",
+    color: "#1f2937",
     backgroundColor: "#ffffff",
   },
   header: {
-    marginBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#000000",
-    paddingBottom: 12,
+    marginBottom: 20,
+    backgroundColor: "#1e3a5f",
+    marginHorizontal: -40,
+    marginTop: -40,
+    paddingHorizontal: 40,
+    paddingVertical: 24,
   },
   name: {
-    fontSize: 24,
+    fontSize: 26,
     fontFamily: "Times-Bold",
-    color: "#00194b",
+    color: "#ffffff",
     textTransform: "uppercase",
+    letterSpacing: 2,
     marginBottom: 4,
   },
   jobTitle: {
     fontSize: 14,
-    color: "#2d3542",
-    marginBottom: 8,
+    color: "#b8860b",
+    marginBottom: 10,
   },
   contactRow: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: 16,
   },
   contactItem: {
-    fontSize: 10,
-    color: "#4b5563",
-  },
-  contactSeparator: {
-    fontSize: 10,
-    color: "#9ca3af",
-    marginHorizontal: 4,
+    fontSize: 9,
+    color: "#d1d5db",
   },
   section: {
-    marginBottom: 14,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 12,
     fontFamily: "Times-Bold",
     textTransform: "uppercase",
     letterSpacing: 1,
-    borderBottomWidth: 1,
-    borderBottomColor: "#d1d5db",
+    color: "#1e3a5f",
+    marginBottom: 10,
     paddingBottom: 4,
-    marginBottom: 8,
-    color: "#002060",
+    borderBottomWidth: 2,
+    borderBottomColor: "#b8860b",
   },
   summaryText: {
     fontSize: 10,
-    lineHeight: 1.5,
-    color: "#2d3542",
+    lineHeight: 1.6,
+    color: "#374151",
   },
   skillsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 6,
+    gap: 8,
   },
   skillBadge: {
     backgroundColor: "#f3f4f6",
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 2,
     fontSize: 9,
-    color: "#2d3542",
+    color: "#1e3a5f",
+    borderLeftWidth: 2,
+    borderLeftColor: "#b8860b",
   },
   experienceItem: {
-    marginTop: 8,
+    marginTop: 12,
   },
   experienceHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 2,
+    marginBottom: 4,
   },
   experienceRole: {
     fontSize: 11,
     fontFamily: "Times-Bold",
-    color: "#002060",
+    color: "#1e3a5f",
   },
   experienceDuration: {
     fontSize: 9,
-    color: "#2d3542",
+    color: "#6b7280",
   },
   experienceCompany: {
     fontSize: 10,
-    color: "#2d3542",
+    color: "#b8860b",
     fontStyle: "italic",
-    marginBottom: 4,
+    marginBottom: 6,
   },
   bulletList: {
     marginLeft: 8,
   },
   bulletItem: {
     flexDirection: "row",
-    marginBottom: 3,
+    marginBottom: 4,
   },
   bullet: {
-    width: 10,
+    width: 12,
     fontSize: 10,
-    color: "#2d3542",
+    color: "#b8860b",
   },
   bulletText: {
     flex: 1,
     fontSize: 9,
-    lineHeight: 1.4,
-    color: "#2d3542",
+    lineHeight: 1.5,
+    color: "#374151",
+  },
+  educationItem: {
+    marginBottom: 10,
   },
   educationHeader: {
     flexDirection: "row",
@@ -124,65 +126,54 @@ const styles = StyleSheet.create({
   educationDegree: {
     fontSize: 10,
     fontFamily: "Times-Bold",
-    color: "#1a1a1a",
+    color: "#1e3a5f",
   },
   educationSchool: {
-    fontSize: 10,
-    color: "#4b5563",
+    fontSize: 9,
+    color: "#6b7280",
     fontStyle: "italic",
   },
   educationYear: {
-    fontSize: 10,
+    fontSize: 9,
     color: "#6b7280",
   },
 })
 
-// Resume PDF Document Component
-const ResumeDocument = ({ data }: { data: ResumeData }) => {
+export const ExecutiveTemplate = ({ data }: { data: ResumeData }) => {
   const { personalInfo, education, summary, skills, workexperience } = data
-
   const contactItems = [personalInfo.phone, personalInfo.email, personalInfo.location].filter(Boolean)
 
   return (
     <Document>
       <Page size="LETTER" style={styles.page}>
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.name}>{personalInfo.fullName}</Text>
           <Text style={styles.jobTitle}>{personalInfo.title}</Text>
           <View style={styles.contactRow}>
             {contactItems.map((item, index) => (
-              <View key={index} style={{ flexDirection: "row" }}>
-                <Text style={styles.contactItem}>{item}</Text>
-                {index < contactItems.length - 1 && <Text style={styles.contactSeparator}>•</Text>}
-              </View>
+              <Text key={index} style={styles.contactItem}>{item}</Text>
             ))}
           </View>
         </View>
 
-        {/* Professional Summary */}
         {summary && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Professional Summary</Text>
+            <Text style={styles.sectionTitle}>Summary</Text>
             <Text style={styles.summaryText}>{summary}</Text>
           </View>
         )}
 
-        {/* Technical Skills */}
         {skills.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Technical Skills</Text>
             <View style={styles.skillsContainer}>
               {skills.map((skill, index) => (
-                <Text key={index} style={styles.skillBadge}>
-                  {skill}
-                </Text>
+                <Text key={index} style={styles.skillBadge}>{skill}</Text>
               ))}
             </View>
           </View>
         )}
 
-        {/* Professional Experience */}
         {workexperience.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Professional Experience</Text>
@@ -208,33 +199,21 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
           </View>
         )}
 
-        {/* Education */}
         <View style={styles.section} wrap={false}>
           <Text style={styles.sectionTitle}>Education</Text>
           {education.map((edu, index) => (
-            <View key={index} style={[styles.educationHeader, index > 0 ? { marginTop: 8 } : {}]}>
-              <View>
-                <Text style={styles.educationDegree}>{edu.degree}</Text>
-                <Text style={styles.educationSchool}>{edu.school}</Text>
+            <View key={index} style={styles.educationItem}>
+              <View style={styles.educationHeader}>
+                <View>
+                  <Text style={styles.educationDegree}>{edu.degree}</Text>
+                  <Text style={styles.educationSchool}>{edu.school}</Text>
+                </View>
+                <Text style={styles.educationYear}>{edu.year}</Text>
               </View>
-              <Text style={styles.educationYear}>{edu.year}</Text>
             </View>
           ))}
         </View>
       </Page>
     </Document>
   )
-}
-
-export async function generateResumePDF(data: ResumeData, filename: string): Promise<void> {
-  const blob = await pdf(<ResumeDocument data={data} />).toBlob()
-
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement("a")
-  link.href = url
-  link.download = filename
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
 }

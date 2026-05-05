@@ -1,65 +1,58 @@
-import { pdf, Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer"
-import type { ResumeData } from "./parse-resume"
+import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer"
+import type { ResumeData } from "../parse-resume"
 
-// Create styles matching the resume preview
 const styles = StyleSheet.create({
   page: {
     padding: 40,
-    fontFamily: "Times-Roman",
+    fontFamily: "Helvetica",
     fontSize: 10,
-    color: "#1a1a1a",
+    color: "#0f172a",
     backgroundColor: "#ffffff",
   },
   header: {
-    marginBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#000000",
-    paddingBottom: 12,
+    marginBottom: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 2,
+    borderBottomColor: "#3b82f6",
   },
   name: {
-    fontSize: 24,
-    fontFamily: "Times-Bold",
-    color: "#00194b",
-    textTransform: "uppercase",
+    fontSize: 28,
+    fontFamily: "Helvetica-Bold",
+    color: "#0f172a",
     marginBottom: 4,
   },
   jobTitle: {
     fontSize: 14,
-    color: "#2d3542",
-    marginBottom: 8,
+    color: "#3b82f6",
+    fontFamily: "Helvetica",
+    marginBottom: 10,
   },
   contactRow: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: 12,
   },
   contactItem: {
-    fontSize: 10,
-    color: "#4b5563",
-  },
-  contactSeparator: {
-    fontSize: 10,
-    color: "#9ca3af",
-    marginHorizontal: 4,
+    fontSize: 9,
+    color: "#475569",
   },
   section: {
-    marginBottom: 14,
+    marginBottom: 4,
   },
   sectionTitle: {
-    fontSize: 12,
-    fontFamily: "Times-Bold",
+    fontSize: 11,
+    fontFamily: "Helvetica-Bold",
     textTransform: "uppercase",
-    letterSpacing: 1,
+    letterSpacing: 1.5,
+    color: "#3b82f6",
+    marginBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#d1d5db",
-    paddingBottom: 4,
-    marginBottom: 8,
-    color: "#002060",
+    borderBottomColor: "#e2e8f0",
   },
   summaryText: {
     fontSize: 10,
-    lineHeight: 1.5,
-    color: "#2d3542",
+    lineHeight: 1.6,
+    color: "#334155",
   },
   skillsContainer: {
     flexDirection: "row",
@@ -67,54 +60,60 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   skillBadge: {
-    backgroundColor: "#f3f4f6",
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 4,
+    backgroundColor: "#eff6ff",
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 12,
     fontSize: 9,
-    color: "#2d3542",
+    color: "#1d4ed8",
   },
   experienceItem: {
-    marginTop: 8,
+    marginTop: 12,
   },
   experienceHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 2,
+    marginBottom: 4,
   },
   experienceRole: {
     fontSize: 11,
-    fontFamily: "Times-Bold",
-    color: "#002060",
+    fontFamily: "Helvetica-Bold",
+    color: "#0f172a",
   },
   experienceDuration: {
     fontSize: 9,
-    color: "#2d3542",
+    color: "#64748b",
+    backgroundColor: "#f1f5f9",
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+    borderRadius: 4,
   },
   experienceCompany: {
     fontSize: 10,
-    color: "#2d3542",
-    fontStyle: "italic",
-    marginBottom: 4,
+    color: "#3b82f6",
+    marginBottom: 6,
   },
   bulletList: {
-    marginLeft: 8,
+    marginLeft: 4,
   },
   bulletItem: {
     flexDirection: "row",
-    marginBottom: 3,
+    marginBottom: 4,
   },
   bullet: {
-    width: 10,
+    width: 12,
     fontSize: 10,
-    color: "#2d3542",
+    color: "#3b82f6",
   },
   bulletText: {
     flex: 1,
     fontSize: 9,
-    lineHeight: 1.4,
-    color: "#2d3542",
+    lineHeight: 1.5,
+    color: "#334155",
+  },
+  educationItem: {
+    marginBottom: 8,
   },
   educationHeader: {
     flexDirection: "row",
@@ -123,69 +122,57 @@ const styles = StyleSheet.create({
   },
   educationDegree: {
     fontSize: 10,
-    fontFamily: "Times-Bold",
-    color: "#1a1a1a",
+    fontFamily: "Helvetica-Bold",
+    color: "#0f172a",
   },
   educationSchool: {
-    fontSize: 10,
-    color: "#4b5563",
-    fontStyle: "italic",
+    fontSize: 9,
+    color: "#64748b",
   },
   educationYear: {
-    fontSize: 10,
-    color: "#6b7280",
+    fontSize: 9,
+    color: "#64748b",
   },
 })
 
-// Resume PDF Document Component
-const ResumeDocument = ({ data }: { data: ResumeData }) => {
+export const ModernTemplate = ({ data }: { data: ResumeData }) => {
   const { personalInfo, education, summary, skills, workexperience } = data
-
   const contactItems = [personalInfo.phone, personalInfo.email, personalInfo.location].filter(Boolean)
 
   return (
     <Document>
       <Page size="LETTER" style={styles.page}>
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.name}>{personalInfo.fullName}</Text>
           <Text style={styles.jobTitle}>{personalInfo.title}</Text>
           <View style={styles.contactRow}>
             {contactItems.map((item, index) => (
-              <View key={index} style={{ flexDirection: "row" }}>
-                <Text style={styles.contactItem}>{item}</Text>
-                {index < contactItems.length - 1 && <Text style={styles.contactSeparator}>•</Text>}
-              </View>
+              <Text key={index} style={styles.contactItem}>{item}</Text>
             ))}
           </View>
         </View>
 
-        {/* Professional Summary */}
         {summary && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Professional Summary</Text>
+            <Text style={styles.sectionTitle}>Summary</Text>
             <Text style={styles.summaryText}>{summary}</Text>
           </View>
         )}
 
-        {/* Technical Skills */}
         {skills.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Technical Skills</Text>
             <View style={styles.skillsContainer}>
               {skills.map((skill, index) => (
-                <Text key={index} style={styles.skillBadge}>
-                  {skill}
-                </Text>
+                <Text key={index} style={styles.skillBadge}>{skill}</Text>
               ))}
             </View>
           </View>
         )}
 
-        {/* Professional Experience */}
         {workexperience.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Professional Experience</Text>
+            <Text style={styles.sectionTitle}>Experience</Text>
             {workexperience.map((exp, index) => (
               <View key={index} style={index === 0 ? undefined : styles.experienceItem} wrap={true}>
                 <View wrap={false}>
@@ -208,33 +195,21 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
           </View>
         )}
 
-        {/* Education */}
         <View style={styles.section} wrap={false}>
           <Text style={styles.sectionTitle}>Education</Text>
           {education.map((edu, index) => (
-            <View key={index} style={[styles.educationHeader, index > 0 ? { marginTop: 8 } : {}]}>
-              <View>
-                <Text style={styles.educationDegree}>{edu.degree}</Text>
-                <Text style={styles.educationSchool}>{edu.school}</Text>
+            <View key={index} style={styles.educationItem}>
+              <View style={styles.educationHeader}>
+                <View>
+                  <Text style={styles.educationDegree}>{edu.degree}</Text>
+                  <Text style={styles.educationSchool}>{edu.school}</Text>
+                </View>
+                <Text style={styles.educationYear}>{edu.year}</Text>
               </View>
-              <Text style={styles.educationYear}>{edu.year}</Text>
             </View>
           ))}
         </View>
       </Page>
     </Document>
   )
-}
-
-export async function generateResumePDF(data: ResumeData, filename: string): Promise<void> {
-  const blob = await pdf(<ResumeDocument data={data} />).toBlob()
-
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement("a")
-  link.href = url
-  link.download = filename
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
 }

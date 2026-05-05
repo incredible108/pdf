@@ -1,7 +1,6 @@
-import { pdf, Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer"
-import type { ResumeData } from "./parse-resume"
+import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer"
+import type { ResumeData } from "../parse-resume"
 
-// Create styles matching the resume preview
 const styles = StyleSheet.create({
   page: {
     padding: 40,
@@ -137,16 +136,13 @@ const styles = StyleSheet.create({
   },
 })
 
-// Resume PDF Document Component
-const ResumeDocument = ({ data }: { data: ResumeData }) => {
+export const ClassicTemplate = ({ data }: { data: ResumeData }) => {
   const { personalInfo, education, summary, skills, workexperience } = data
-
   const contactItems = [personalInfo.phone, personalInfo.email, personalInfo.location].filter(Boolean)
 
   return (
     <Document>
       <Page size="LETTER" style={styles.page}>
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.name}>{personalInfo.fullName}</Text>
           <Text style={styles.jobTitle}>{personalInfo.title}</Text>
@@ -160,7 +156,6 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
           </View>
         </View>
 
-        {/* Professional Summary */}
         {summary && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Professional Summary</Text>
@@ -168,21 +163,17 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
           </View>
         )}
 
-        {/* Technical Skills */}
         {skills.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Technical Skills</Text>
             <View style={styles.skillsContainer}>
               {skills.map((skill, index) => (
-                <Text key={index} style={styles.skillBadge}>
-                  {skill}
-                </Text>
+                <Text key={index} style={styles.skillBadge}>{skill}</Text>
               ))}
             </View>
           </View>
         )}
 
-        {/* Professional Experience */}
         {workexperience.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Professional Experience</Text>
@@ -208,7 +199,6 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
           </View>
         )}
 
-        {/* Education */}
         <View style={styles.section} wrap={false}>
           <Text style={styles.sectionTitle}>Education</Text>
           {education.map((edu, index) => (
@@ -224,17 +214,4 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
       </Page>
     </Document>
   )
-}
-
-export async function generateResumePDF(data: ResumeData, filename: string): Promise<void> {
-  const blob = await pdf(<ResumeDocument data={data} />).toBlob()
-
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement("a")
-  link.href = url
-  link.download = filename
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
 }
