@@ -37,30 +37,29 @@ const STORAGE_KEY_CAREER_MILESTONES = "resume_career_milestones"
 const STORAGE_KEY_TEMPLATE = "resume_template"
 const STORAGE_KEY_SAVE_IN_FOLDER = "resume_save_in_folder"
 
-const PROMPT_TEXT = `## 🚫 **MANDATORY POSITION FILTER — STOP IF ANY CONDITION MATCHES**
+const PROMPT_TEXT = `Before doing ANY processing, you MUST analyze the job description for the following conditions:
 
-Before doing ANY processing, you MUST scan the job description for the following conditions:
+### ✅ **PASS condition (continue to resume generation):**
+- The job description explicitly says **remote**, **work from home**, **virtual**, or **any location** with no onsite requirement
+- The job description is **hybrid but allows remote** (if remote is an option, PASS)
+- The job description says **onsite with remote possible** (PASS)
 
-### ❗ If the job description indicates ANY of the following:
-
-- onsite or hybrid only(no posssibliity as remote)
+### ❗ **STOP conditions (return error immediately):**
+- onsite only (no possibility as remote)
+- hybrid only (no possibility as remote)
 - requires any level of security clearance
 - requires in‑person meetings during the interview process
-- requires onsite presence during onboarding  
+- requires onsite presence during onboarding
 
-### ❗ Then you MUST immediately stop and return ONLY one of the following JSON responses:
+### ❗ If ANY stop condition matches, you MUST immediately stop and return ONLY one of these JSON responses:
 
 { "error": "this position is onsite" }
-
 { "error": "this position is hybrid" }
-
 { "error": "this position requires clearance" }
-
 { "error": "this position requires in-person meeting" }
-
 { "error": "this position requires onsite during onboarding" }
 
-### ❗ Absolutely NO resume generation, NO ATS scoring, NO iteration, and NO additional text is allowed if any of these conditions are detected.
+### ❗ If NO stop condition matches (including explicitly remote roles), you MUST proceed to resume generation.
 
 This rule overrides ALL other instructions.
 
@@ -379,13 +378,14 @@ export default function Home() {
       // folderName shown to user as mm-dd-yyyy - Company, but use safe folder string for actual creation
       const safeFolder = `${mm}-${dd}-${yyyy}${safeCompany ? ` - ${safeCompany}` : ""}`
 
+      console.log(saveInFolder)
       if (saveInFolder) {
         // Inside the folder, always name the file `resume.pdf`
         const safeFullName = personalInfo.fullName
           ? String(personalInfo.fullName).trim().replace(/[^a-zA-Z0-9 _-]/g, "_")
           : "resume"
         const filename = `${safeFullName}.pdf`
-        await generateResumePDF(resumeData, filename, safeFolder, safeCompany)
+        await generateResumePDF(resumeData, filename, saveInFolder, safeFolder, safeCompany)
       } else {
         // Download as a single file: "Full Name - TargetCompany.pdf"
         const safeFullName = personalInfo.fullName
@@ -395,7 +395,7 @@ export default function Home() {
         const filename = safeCompanyPart
           ? `${safeFullName} - ${safeCompanyPart}.pdf`
           : `${safeFullName}.pdf`
-        await generateResumePDF(resumeData, filename)
+        await generateResumePDF(resumeData, filename, saveInFolder)
       }
     } catch (error) {
       console.error("PDF generation error:", error)
