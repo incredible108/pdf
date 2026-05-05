@@ -27,13 +27,46 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { toast } from "@/components/ui/use-toast"
+import { Label } from "recharts"
+import { Checkbox } from "@/components/ui/checkbox"
 
 const STORAGE_KEY_PERSONAL = "resume_personal_info"
 const STORAGE_KEY_EDUCATION = "resume_education"
 const STORAGE_KEY_CAREER_MILESTONES = "resume_career_milestones"
 const STORAGE_KEY_TEMPLATE = "resume_template"
+const STORAGE_KEY_SAVE_IN_FOLDER = "resume_save_in_folder"
 
-const PROMPT_TEXT = `Generate a fully tailored, ATS optimized, professionally written resume based on the provided career milestones and job description.
+const PROMPT_TEXT = `## 🚫 **MANDATORY POSITION FILTER — STOP IF ANY CONDITION MATCHES**
+
+Before doing ANY processing, you MUST scan the job description for the following conditions:
+
+### ❗ If the job description indicates ANY of the following:
+
+- onsite or hybrid only(no posssibliity as remote)
+- requires any level of security clearance
+- requires in‑person meetings during the interview process
+- requires onsite presence during onboarding  
+
+### ❗ Then you MUST immediately stop and return ONLY one of the following JSON responses:
+
+{ "error": "this position is onsite" }
+
+{ "error": "this position is hybrid" }
+
+{ "error": "this position requires clearance" }
+
+{ "error": "this position requires in-person meeting" }
+
+{ "error": "this position requires onsite during onboarding" }
+
+### ❗ Absolutely NO resume generation, NO ATS scoring, NO iteration, and NO additional text is allowed if any of these conditions are detected.
+
+This rule overrides ALL other instructions.
+
+---
+
+Generate a fully tailored, ATS optimized, professionally written resume based on the provided career milestones and job description.
 
 The system must iterate and improve the resume until the ATS score exceeds 90 percent.
 
@@ -163,6 +196,9 @@ export default function Home() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewEditable, setPreviewEditable] = useState(false)
+
+  const [companyName, setCompanyName] = useState("")
+  const [saveInFolder, setSaveInFolder] = useState(true)
   // const [promptOpen, setPromptOpen] = useState(false)
 
   // Load saved data on mount (prompt is no longer loaded from storage)
@@ -202,6 +238,14 @@ export default function Home() {
     if (savedTemplate) {
       setSelectedTemplate(savedTemplate as TemplateId)
     }
+    const savedSaveInFolder = localStorage.getItem(STORAGE_KEY_SAVE_IN_FOLDER)
+    if (savedSaveInFolder !== null) {
+      try {
+        setSaveInFolder(JSON.parse(savedSaveInFolder))
+      } catch {
+        setSaveInFolder(savedSaveInFolder === 'true')
+      }
+    }
   }, [])
 
   // Prompt is no longer saved to localStorage
@@ -209,11 +253,16 @@ export default function Home() {
     setPreviewEditable(!previewEditable)
   }
 
+  const handleSetCompanyName = (name: string) => {
+    setCompanyName(name)
+  }
+
   const handleSaveSettings = () => {
     localStorage.setItem(STORAGE_KEY_PERSONAL, JSON.stringify(personalInfo))
     localStorage.setItem(STORAGE_KEY_EDUCATION, JSON.stringify(education))
     localStorage.setItem(STORAGE_KEY_CAREER_MILESTONES, careerMilestones)
     localStorage.setItem(STORAGE_KEY_TEMPLATE, selectedTemplate)
+    localStorage.setItem(STORAGE_KEY_SAVE_IN_FOLDER, JSON.stringify(saveInFolder))
     setSettingsOpen(false)
   }
 
@@ -286,9 +335,16 @@ export default function Home() {
         generatedContent.lastIndexOf('}') + 1
       );
       // Parse the generated resume content
-      console.log(cleaned)
       const parsed = JSON.parse(cleaned)
       console.log("title:", parsed.title)
+      console.log("error:", parsed.error)
+
+      if (parsed.error) {
+        const msg = String(parsed.error)
+        toast({ title: "Generation error", description: msg })
+        setError(`Generation error: ${msg}`)
+        return
+      }
 
       const fullResumeData: ResumeData = {
         personalInfo,
@@ -312,9 +368,35 @@ export default function Home() {
     if (!resumeData) return
 
     try {
-      const { generateResumePDF } = await import("@/lib/pdf-templates")
-      const filename = `${personalInfo.fullName.replace(/\s+/g, "_")}_Resume.pdf`
-      await generateResumePDF(resumeData, filename, selectedTemplate)
+      const { generateResumePDF } = await import("@/lib/generate-pdf")
+      // const filename = `${personalInfo.fullName.replace(/\s+/g, "_")}_Resume.pdf`
+      // Build a safe folder name: MM-DD-YYYY - CompanyName
+      const now = new Date()
+      const mm = String(now.getMonth() + 1).padStart(2, "0")
+      const dd = String(now.getDate()).padStart(2, "0")
+      const yyyy = String(now.getFullYear())
+      const safeCompany = companyName?.trim() ? companyName.trim().replace(/[^a-zA-Z0-9 _-]/g, "_") : ""
+      // folderName shown to user as mm-dd-yyyy - Company, but use safe folder string for actual creation
+      const safeFolder = `${mm}-${dd}-${yyyy}${safeCompany ? ` - ${safeCompany}` : ""}`
+
+      if (saveInFolder) {
+        // Inside the folder, always name the file `resume.pdf`
+        const safeFullName = personalInfo.fullName
+          ? String(personalInfo.fullName).trim().replace(/[^a-zA-Z0-9 _-]/g, "_")
+          : "resume"
+        const filename = `${safeFullName}.pdf`
+        await generateResumePDF(resumeData, filename, safeFolder, safeCompany)
+      } else {
+        // Download as a single file: "Full Name - TargetCompany.pdf"
+        const safeFullName = personalInfo.fullName
+          ? String(personalInfo.fullName).trim().replace(/[^a-zA-Z0-9 _-]/g, "_")
+          : "resume"
+        const safeCompanyPart = safeCompany || ""
+        const filename = safeCompanyPart
+          ? `${safeFullName} - ${safeCompanyPart}.pdf`
+          : `${safeFullName}.pdf`
+        await generateResumePDF(resumeData, filename)
+      }
     } catch (error) {
       console.error("PDF generation error:", error)
       setError("Failed to generate PDF. Please try again.")
@@ -557,6 +639,20 @@ Software Engineer, 09/2015 - 09/2019
                 value={selectedTemplate}
                 onChange={setSelectedTemplate}
               />
+              <div className="mt-4">
+                <h3 className="text-sm font-medium mb-3">Download Options</h3>
+                <p className="text-xs text-muted-foreground mb-3">Control how the generated PDF is saved.</p>
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    checked={saveInFolder}
+                    onCheckedChange={(v) => setSaveInFolder(Boolean(v))}
+                  />
+                  <div>
+                    <div className="text-sm font-medium">Save inside dated folder (mm-dd-yyyy - Target Company Name)</div>
+                    <p className="text-xs text-muted-foreground">When enabled, the PDF will be saved inside a dated folder. When disabled, it will download as a single file named &quot;Full Name - TargetCompany.pdf&quot;.</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -598,6 +694,21 @@ Software Engineer, 09/2015 - 09/2019
             <Button variant="outline" onClick={() => handlePreviewEditable()}>
               {previewEditable ? "Done" : "Edit"}
             </Button>
+            <div className="flex items-center gap-4 max-w-xl">
+              <Label
+                className="w-40 text-sm font-medium text-gray-700"
+              >
+                Target Company Name
+              </Label>
+
+              <Input
+                id="companyName"
+                value={companyName}
+                onChange={(e) => handleSetCompanyName(e.target.value)}
+                placeholder="Enter target company name"
+                className="flex-1 rounded-xl border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+              />
+            </div>
             <Button onClick={handleDownloadPDF}>
               <FileDown className="h-4 w-4 mr-2" />
               Download PDF

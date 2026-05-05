@@ -226,11 +226,43 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
   )
 }
 
-export async function generateResumePDF(data: ResumeData, filename: string): Promise<void> {
+export async function generateResumePDF(data: ResumeData, filename: string, folderName?: string, companyName?: string): Promise<void> {
   const blob = await pdf(<ResumeDocument data={data} />).toBlob()
 
+  // Try File System Access API first (allows creating directories)
+  // If unavailable, fall back to standard download link
+  try {
+    // @ts-ignore - these APIs may not exist in all browsers
+    if (window.showDirectoryPicker) {
+      // Ask user to pick a parent folder
+      // This will prompt the user to select where they want to save the generated folder
+      // and file. The app cannot write without explicit user permission.
+      // eslint-disable-next-line no-undef
+      const parentHandle = await (window as any).showDirectoryPicker()
+
+      // Sanitize folder name and use fallback if none provided
+      const safeFolder = folderName && String(folderName).trim().length > 0 ? String(folderName) : 'Resume'
+
+      // Create (or get) the dated/company folder
+      const dirHandle = await parentHandle.getDirectoryHandle(safeFolder, { create: true })
+
+      // Create (or get) the file handle
+      const fileHandle = await dirHandle.getFileHandle(filename, { create: true })
+      const writable = await fileHandle.createWritable()
+      await writable.write(blob)
+      await writable.close()
+      return
+    }
+  } catch (err) {
+    // If something goes wrong with FS API, we'll fallback to download below
+    // eslint-disable-next-line no-console
+    console.warn('File System Access API failed, falling back to download', err)
+    filename = `${filename}${companyName ? ' - ' + companyName : ''}`
+  }
+
+  // Fallback: create a download link (single file)
   const url = URL.createObjectURL(blob)
-  const link = document.createElement("a")
+  const link = document.createElement('a')
   link.href = url
   link.download = filename
   document.body.appendChild(link)
