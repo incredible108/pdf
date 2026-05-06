@@ -36,6 +36,8 @@ const STORAGE_KEY_EDUCATION = "resume_education"
 const STORAGE_KEY_CAREER_MILESTONES = "resume_career_milestones"
 const STORAGE_KEY_TEMPLATE = "resume_template"
 const STORAGE_KEY_SAVE_IN_FOLDER = "resume_save_in_folder"
+const STORAGE_KEY_COMPANY = "resume_company_name"
+const STORAGE_KEY_USE_COMPANY = "resume_use_company_name"
 
 const PROMPT_TEXT = `Before doing ANY processing, you MUST analyze the job description for the following conditions:
 
@@ -108,6 +110,7 @@ Iteration and ATS Optimization Loop
 Required JSON Output Format
 
 {
+"target_company": "...",
 "summary": "...",
 "skills": ["...", "..."],
 "workexperience": [
@@ -123,6 +126,11 @@ Required JSON Output Format
 ---
 
 Field Requirements
+
+target_company
+
+* Extract the company name from the job description exactly as written
+* If no company name is present, use ""
 
 Summary
 
@@ -197,7 +205,8 @@ export default function Home() {
   const [previewEditable, setPreviewEditable] = useState(false)
 
   const [companyName, setCompanyName] = useState("")
-  const [saveInFolder, setSaveInFolder] = useState(true)
+  const [useCompanyName, setUseCompanyName] = useState(true)
+  const [saveInFolder, setSaveInFolder] = useState(false)
   // const [promptOpen, setPromptOpen] = useState(false)
 
   // Load saved data on mount (prompt is no longer loaded from storage)
@@ -245,6 +254,18 @@ export default function Home() {
         setSaveInFolder(savedSaveInFolder === 'true')
       }
     }
+    const savedCompany = localStorage.getItem(STORAGE_KEY_COMPANY)
+    if (savedCompany) {
+      setCompanyName(savedCompany)
+    }
+    const savedUseCompany = localStorage.getItem(STORAGE_KEY_USE_COMPANY)
+    if (savedUseCompany !== null) {
+      try {
+        setUseCompanyName(JSON.parse(savedUseCompany))
+      } catch {
+        setUseCompanyName(savedUseCompany === 'true')
+      }
+    }
   }, [])
 
   // Prompt is no longer saved to localStorage
@@ -262,6 +283,8 @@ export default function Home() {
     localStorage.setItem(STORAGE_KEY_CAREER_MILESTONES, careerMilestones)
     localStorage.setItem(STORAGE_KEY_TEMPLATE, selectedTemplate)
     localStorage.setItem(STORAGE_KEY_SAVE_IN_FOLDER, JSON.stringify(saveInFolder))
+    localStorage.setItem(STORAGE_KEY_COMPANY, String(companyName || ''))
+    localStorage.setItem(STORAGE_KEY_USE_COMPANY, JSON.stringify(useCompanyName))
     setSettingsOpen(false)
   }
 
@@ -345,6 +368,8 @@ export default function Home() {
         return
       }
 
+      handleSetCompanyName(parsed.target_company)
+
       const fullResumeData: ResumeData = {
         personalInfo,
         education,
@@ -367,16 +392,19 @@ export default function Home() {
     if (!resumeData) return
 
     try {
-      const { generateResumePDF } = await import("@/lib/generate-pdf")
+      const { generateResumePDF } = await import("@/lib/pdf-templates")
       // const filename = `${personalInfo.fullName.replace(/\s+/g, "_")}_Resume.pdf`
-      // Build a safe folder name: MM-DD-YYYY - CompanyName
+      // Build a safe folder name: YYYY-MM-DD_HH-MM-SS - CompanyName
       const now = new Date()
+      const hh = String(now.getHours()).padStart(2, "0")
+      const mm1 = String(now.getMinutes()).padStart(2, "0")
+      const ss = String(now.getSeconds()).padStart(2, "0")
       const mm = String(now.getMonth() + 1).padStart(2, "0")
       const dd = String(now.getDate()).padStart(2, "0")
       const yyyy = String(now.getFullYear())
-      const safeCompany = companyName?.trim() ? companyName.trim().replace(/[^a-zA-Z0-9 _-]/g, "_") : ""
-      // folderName shown to user as mm-dd-yyyy - Company, but use safe folder string for actual creation
-      const safeFolder = `${mm}-${dd}-${yyyy}${safeCompany ? ` - ${safeCompany}` : ""}`
+      const safeCompany = useCompanyName && companyName?.trim() ? companyName.trim().replace(/[^a-zA-Z0-9 _-]/g, "_") : ""
+      // folderName shown to user as YYYY-MM-DD_HH-MM-SS - Company, use this for creation
+      const safeFolder = `${yyyy}-${mm}-${dd}_${hh}-${mm1}-${ss}${safeCompany ? ` - ${safeCompany}` : ""}`
 
       console.log(saveInFolder)
       if (saveInFolder) {
@@ -385,7 +413,7 @@ export default function Home() {
           ? String(personalInfo.fullName).trim().replace(/[^a-zA-Z0-9 _-]/g, "_")
           : "resume"
         const filename = `${safeFullName}.pdf`
-        await generateResumePDF(resumeData, filename, saveInFolder, safeFolder, safeCompany)
+        await generateResumePDF(resumeData, filename, saveInFolder, selectedTemplate, safeFolder)
       } else {
         // Download as a single file: "Full Name - TargetCompany.pdf"
         const safeFullName = personalInfo.fullName
@@ -395,7 +423,7 @@ export default function Home() {
         const filename = safeCompanyPart
           ? `${safeFullName} - ${safeCompanyPart}.pdf`
           : `${safeFullName}.pdf`
-        await generateResumePDF(resumeData, filename, saveInFolder)
+        await generateResumePDF(resumeData, filename, saveInFolder, selectedTemplate)
       }
     } catch (error) {
       console.error("PDF generation error:", error)
@@ -652,6 +680,18 @@ Software Engineer, 09/2015 - 09/2019
                     <p className="text-xs text-muted-foreground">When enabled, the PDF will be saved inside a dated folder. When disabled, it will download as a single file named &quot;Full Name - TargetCompany.pdf&quot;.</p>
                   </div>
                 </div>
+                <div className="mt-4 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      checked={useCompanyName}
+                      onCheckedChange={(v) => setUseCompanyName(Boolean(v))}
+                    />
+                    <div>
+                      <div className="text-sm font-medium">Include company name in folder/file name</div>
+                      <p className="text-xs text-muted-foreground">When enabled, the target company name will be appended to folder and file names where applicable.</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -694,21 +734,23 @@ Software Engineer, 09/2015 - 09/2019
             <Button variant="outline" onClick={() => handlePreviewEditable()}>
               {previewEditable ? "Done" : "Edit"}
             </Button>
-            <div className="flex items-center gap-4 max-w-xl">
-              <Label
-                className="w-40 text-sm font-medium text-gray-700"
-              >
-                Target Company Name
-              </Label>
+            {useCompanyName && (
+              <div className="flex items-center gap-4 max-w-xl">
+                <Label
+                  className="w-40 text-sm font-medium text-gray-700"
+                >
+                  Target Company Name
+                </Label>
 
-              <Input
-                id="companyName"
-                value={companyName}
-                onChange={(e) => handleSetCompanyName(e.target.value)}
-                placeholder="Enter target company name"
-                className="flex-1 rounded-xl border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
-              />
-            </div>
+                <Input
+                  id="companyName"
+                  value={companyName}
+                  onChange={(e) => handleSetCompanyName(e.target.value)}
+                  placeholder="Enter target company name"
+                  className="flex-1 rounded-xl border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                />
+              </div>
+            )}
             <Button onClick={handleDownloadPDF}>
               <FileDown className="h-4 w-4 mr-2" />
               Download PDF
