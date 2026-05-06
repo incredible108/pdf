@@ -393,7 +393,6 @@ export default function Home() {
 
     try {
       const { generateResumePDF } = await import("@/lib/pdf-templates")
-      // const filename = `${personalInfo.fullName.replace(/\s+/g, "_")}_Resume.pdf`
       // Build a safe folder name: YYYY-MM-DD_HH-MM-SS - CompanyName
       const now = new Date()
       const hh = String(now.getHours()).padStart(2, "0")
