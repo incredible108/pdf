@@ -666,18 +666,19 @@ Software Engineer, 09/2015 - 09/2019
                 value={selectedTemplate}
                 onChange={setSelectedTemplate}
               />
-              <div className="mt-4">
-                <h3 className="text-sm font-medium mb-3">Download Options</h3>
-                <p className="text-xs text-muted-foreground mb-3">Control how the generated PDF is saved.</p>
-                <div className="flex items-center gap-3">
-                  <Checkbox
-                    checked={saveInFolder}
-                    onCheckedChange={(v) => setSaveInFolder(Boolean(v))}
-                  />
-                  <div>
-                    <div className="text-sm font-medium">Save inside dated folder (mm-dd-yyyy - Target Company Name)</div>
-                    <p className="text-xs text-muted-foreground">When enabled, the PDF will be saved inside a dated folder. When disabled, it will download as a single file named &quot;Full Name - TargetCompany.pdf&quot;.</p>
-                  </div>
+            </div>
+
+            {/* Download Options */}
+            <div>
+              <h3 className="text-sm font-medium mb-3">Download Options</h3>
+              <div className="flex items-center gap-3">
+                <Checkbox
+                  checked={saveInFolder}
+                  onCheckedChange={(v) => setSaveInFolder(Boolean(v))}
+                />
+                <div>
+                  <div className="text-sm font-medium">Save inside dated folder (mm-dd-yyyy - Target Company Name)</div>
+                  <p className="text-xs text-muted-foreground">When enabled, the PDF will be saved inside a dated folder. When disabled, it will download as a single file..</p>
                 </div>
                 <div className="mt-4 space-y-3">
                   <div className="flex items-center gap-3">
