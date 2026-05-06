@@ -367,36 +367,19 @@ export default function Home() {
     if (!resumeData) return
 
     try {
-      const { generateResumePDF } = await import("@/lib/generate-pdf")
-      // const filename = `${personalInfo.fullName.replace(/\s+/g, "_")}_Resume.pdf`
-      // Build a safe folder name: MM-DD-YYYY - CompanyName
+      const { generateResumePDF } = await import("@/lib/pdf-templates")
+
       const now = new Date()
       const mm = String(now.getMonth() + 1).padStart(2, "0")
       const dd = String(now.getDate()).padStart(2, "0")
       const yyyy = String(now.getFullYear())
       const safeCompany = companyName?.trim() ? companyName.trim().replace(/[^a-zA-Z0-9 _-]/g, "_") : ""
-      // folderName shown to user as mm-dd-yyyy - Company, but use safe folder string for actual creation
-      const safeFolder = `${mm}-${dd}-${yyyy}${safeCompany ? ` - ${safeCompany}` : ""}`
 
-      console.log(saveInFolder)
-      if (saveInFolder) {
-        // Inside the folder, always name the file `resume.pdf`
-        const safeFullName = personalInfo.fullName
-          ? String(personalInfo.fullName).trim().replace(/[^a-zA-Z0-9 _-]/g, "_")
-          : "resume"
-        const filename = `${safeFullName}.pdf`
-        await generateResumePDF(resumeData, filename, saveInFolder, safeFolder, safeCompany)
-      } else {
-        // Download as a single file: "Full Name - TargetCompany.pdf"
-        const safeFullName = personalInfo.fullName
-          ? String(personalInfo.fullName).trim().replace(/[^a-zA-Z0-9 _-]/g, "_")
-          : "resume"
-        const safeCompanyPart = safeCompany || ""
-        const filename = safeCompanyPart
-          ? `${safeFullName} - ${safeCompanyPart}.pdf`
-          : `${safeFullName}.pdf`
-        await generateResumePDF(resumeData, filename, saveInFolder)
-      }
+      const safeFolder = `${mm}-${dd}-${yyyy}${safeCompany ? ` - ${safeCompany}` : ""}`
+      const filename = `${personalInfo.fullName.replace(/\s+/g, "_")}_Resume.pdf`
+      
+      await generateResumePDF(resumeData, filename, selectedTemplate, saveInFolder, safeFolder)
+
     } catch (error) {
       console.error("PDF generation error:", error)
       setError("Failed to generate PDF. Please try again.")
