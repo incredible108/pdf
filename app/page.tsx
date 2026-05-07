@@ -297,7 +297,14 @@ export default function Home() {
       const fullPrompt = `${PROMPT_TEXT.replace("Career Milestone:", `Career Milestone:\n${careerMilestones}`).replace("JD:", `JD:\n${jobDescription}`)}`
 
       // Call the Python backend
-      const response = await fetch("https://pdf-builder-backend.onrender.com/scrape-deepseek", {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+      if (!backendUrl) {
+        setError("Backend URL not configured. Please set NEXT_PUBLIC_BACKEND_URL environment variable.")
+        setIsGenerating(false)
+        return
+      }
+      console.log("Using backend URL:", backendUrl)
+      const response = await fetch(`${backendUrl}/scrape-deepseek`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
