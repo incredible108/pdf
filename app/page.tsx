@@ -39,35 +39,7 @@ const STORAGE_KEY_SAVE_IN_FOLDER = "resume_save_in_folder"
 const STORAGE_KEY_COMPANY = "resume_company_name"
 const STORAGE_KEY_USE_COMPANY = "resume_use_company_name"
 
-const PROMPT_TEXT = `Before doing ANY processing, you MUST analyze the job description for the following conditions:
-
-### ✅ **PASS condition (continue to resume generation):**
-- The job description explicitly says **remote**, **work from home**, **virtual**, or **any location** with no onsite requirement
-- The job description is **hybrid but allows remote** (if remote is an option, PASS)
-- The job description says **onsite with remote possible** (PASS)
-
-### ❗ **STOP conditions (return error immediately):**
-- onsite only (no possibility as remote)
-- hybrid only (no possibility as remote)
-- requires any level of security clearance
-- requires in‑person meetings during the interview process
-- requires onsite presence during onboarding
-
-### ❗ If ANY stop condition matches, you MUST immediately stop and return ONLY one of these JSON responses:
-
-{ "error": "this position is onsite" }
-{ "error": "this position is hybrid" }
-{ "error": "this position requires clearance" }
-{ "error": "this position requires in-person meeting" }
-{ "error": "this position requires onsite during onboarding" }
-
-### ❗ If NO stop condition matches (including explicitly remote roles), you MUST proceed to resume generation.
-
-This rule overrides ALL other instructions.
-
----
-
-Generate a fully tailored, ATS optimized, professionally written resume based on the provided career milestones and job description.
+const PROMPT_TEXT = `Generate a fully tailored, ATS optimized, professionally written resume based on the provided career milestones and job description.
 
 The system must iterate and improve the resume until the ATS score exceeds 90 percent.
 
@@ -325,14 +297,7 @@ export default function Home() {
       const fullPrompt = `${PROMPT_TEXT.replace("Career Milestone:", `Career Milestone:\n${careerMilestones}`).replace("JD:", `JD:\n${jobDescription}`)}`
 
       // Call the Python backend
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
-      if (!backendUrl) {
-        setError("Backend URL not configured. Please set NEXT_PUBLIC_BACKEND_URL environment variable.")
-        setIsGenerating(false)
-        return
-      }
-      console.log("Using backend URL:", backendUrl)
-      const response = await fetch(`${backendUrl}/scrape-deepseek`, {
+      const response = await fetch("https://pdf-builder-backend.onrender.com/scrape-deepseek", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
