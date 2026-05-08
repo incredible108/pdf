@@ -15,6 +15,7 @@ import {
 import { FileDown, AlertCircle, Settings, Plus, Trash2, Briefcase, Pencil, Eye } from "lucide-react"
 import { FunnyLoadingBar } from "@/components/funny-loading-bar"
 import { Input } from "@/components/ui/input"
+import { Spinner } from "@/components/ui/spinner"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { TemplateSelector } from "@/components/template-selector"
@@ -181,6 +182,7 @@ export default function Home() {
   const [useCompanyName, setUseCompanyName] = useState(true)
   const [saveInFolder, setSaveInFolder] = useState(false)
   const [downloadJDWithPDF, setDownloadJDWithPDF] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
   // const [promptOpen, setPromptOpen] = useState(false)
 
   // Load saved data on mount (prompt is no longer loaded from storage)
@@ -373,6 +375,8 @@ export default function Home() {
 
   const handleDownloadPDF = async () => {
     if (!resumeData) return
+    if (isDownloading) return
+    setIsDownloading(true)
 
     try {
       const { generateResumePDF } = await import("@/lib/pdf-templates")
@@ -393,7 +397,6 @@ export default function Home() {
         ? String(personalInfo.fullName).trim().replace(/[^a-zA-Z0-9 _-]/g, "_")
         : "resume"
 
-      console.log(saveInFolder)
       if (saveInFolder) {
         const filename = `${safeFullName}.pdf`
         await generateResumePDF(
@@ -411,26 +414,11 @@ export default function Home() {
           : `${safeFullName}.pdf`
         await generateResumePDF(resumeData, filename, saveInFolder, selectedTemplate)
       }
-      // Optionally also download the job description as a text file
-      if (downloadJDWithPDF && jobDescription && jobDescription.trim()) {
-        try {
-          const blob = new Blob([jobDescription], { type: "text/plain;charset=utf-8" })
-          const url = URL.createObjectURL(blob)
-          const a = document.createElement("a")
-          a.href = url
-          a.download = companyName ? `${safeFullName} - ${companyName} - jd.txt` : `${safeFullName} - jd.txt`
-          document.body.appendChild(a)
-          a.click()
-          a.remove()
-          URL.revokeObjectURL(url)
-        } catch (err) {
-          console.error("Download job description error:", err)
-          toast({ title: "Download failed", description: "Could not download the job description." })
-        }
-      }
     } catch (error) {
       console.error("PDF generation error:", error)
       setError("Failed to generate PDF. Please try again.")
+    } finally {
+      setIsDownloading(false)
     }
   }
 
@@ -775,9 +763,18 @@ Software Engineer, 09/2015 - 09/2019
                 />
               </div>
             )}
-            <Button onClick={handleDownloadPDF}>
-              <FileDown className="h-4 w-4 mr-2" />
-              Download PDF
+            <Button onClick={handleDownloadPDF} disabled={isDownloading}>
+              {isDownloading ? (
+                <>
+                  <Spinner className="h-4 w-4 mr-2" />
+                  Downloading
+                </>
+              ) : (
+                <>
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Download PDF
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
