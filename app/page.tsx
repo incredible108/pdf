@@ -91,7 +91,7 @@ Required JSON Output Format
 {
 "companyname": "...",
 "role": "...",
-"duration": "MM.YYYY - MM.YYYY",
+"duration": "MMM.YYYY - MMM.YYYY",(like Mar.2020 - Apr.2024)
 "experience": ["...", "...", "..."]
 }
 ]
