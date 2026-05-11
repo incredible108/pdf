@@ -33,7 +33,8 @@ export async function generateResumePDF(
   filename: string,
   isDirectory: boolean,
   templateId: TemplateId = "classic",
-  folderName?: string
+  folderName?: string,
+  jdContent?: string
 ): Promise<void> {
   const TemplateComponent = templateComponents[templateId]
   const blob = await pdf(<TemplateComponent data={data} />).toBlob()
@@ -165,8 +166,28 @@ export async function generateResumePDF(
           await writable.write(blob)
           await writable.close()
 
+          // If job description content provided, write it to the same folder
+          if (jdContent && String(jdContent).trim().length > 0) {
+            try {
+              const jdName = 'job-description.txt'
+              const jdHandle = await dirHandle.getFileHandle(jdName, { create: true })
+              const jdWritable = await jdHandle.createWritable()
+              const jdBlob = new Blob([jdContent], { type: 'text/plain;charset=utf-8' })
+              await jdWritable.write(jdBlob)
+              await jdWritable.close()
+            } catch (e) {
+              // ignore JD write errors
+              toast({
+                title: 'JD Save failed',
+                description:
+                  'Could not download jd',
+              })
+            }
+          }
+
           try {
-            toast({ title: 'Resume Downloaded', description: `${parentHandle.name}/${safeFolder}/${filename}` })
+            const desc = jdContent ? `${parentHandle.name}/${safeFolder}/${filename} (+ job description)` : `${parentHandle.name}/${safeFolder}/${filename}`
+            toast({ title: 'Resume Downloaded', description: desc })
           } catch (e) {
             // ignore toast errors
           }

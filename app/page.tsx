@@ -12,9 +12,10 @@ import {
   type PersonalInfo,
   type Education,
 } from "@/lib/parse-resume"
-import { FileDown, FileText, AlertCircle, Settings, Plus, Trash2, Briefcase, Pencil, Eye } from "lucide-react"
+import { FileDown, AlertCircle, Settings, Plus, Trash2, Briefcase, Pencil, Eye } from "lucide-react"
 import { FunnyLoadingBar } from "@/components/funny-loading-bar"
 import { Input } from "@/components/ui/input"
+import { Spinner } from "@/components/ui/spinner"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { TemplateSelector } from "@/components/template-selector"
@@ -38,6 +39,7 @@ const STORAGE_KEY_TEMPLATE = "resume_template"
 const STORAGE_KEY_SAVE_IN_FOLDER = "resume_save_in_folder"
 const STORAGE_KEY_COMPANY = "resume_company_name"
 const STORAGE_KEY_USE_COMPANY = "resume_use_company_name"
+const STORAGE_KEY_DOWNLOAD_JD = "resume_download_jd_with_pdf"
 
 const PROMPT_TEXT = `Generate a fully tailored, ATS optimized, professionally written resume based on the provided career milestones and job description.
 
@@ -179,6 +181,8 @@ export default function Home() {
   const [companyName, setCompanyName] = useState("")
   const [useCompanyName, setUseCompanyName] = useState(true)
   const [saveInFolder, setSaveInFolder] = useState(false)
+  const [downloadJDWithPDF, setDownloadJDWithPDF] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
   // const [promptOpen, setPromptOpen] = useState(false)
 
   // Load saved data on mount (prompt is no longer loaded from storage)
@@ -238,6 +242,14 @@ export default function Home() {
         setUseCompanyName(savedUseCompany === 'true')
       }
     }
+    const savedDownloadJD = localStorage.getItem(STORAGE_KEY_DOWNLOAD_JD)
+    if (savedDownloadJD !== null) {
+      try {
+        setDownloadJDWithPDF(JSON.parse(savedDownloadJD))
+      } catch {
+        setDownloadJDWithPDF(savedDownloadJD === 'true')
+      }
+    }
   }, [])
 
   // Prompt is no longer saved to localStorage
@@ -257,6 +269,7 @@ export default function Home() {
     localStorage.setItem(STORAGE_KEY_SAVE_IN_FOLDER, JSON.stringify(saveInFolder))
     localStorage.setItem(STORAGE_KEY_COMPANY, String(companyName || ''))
     localStorage.setItem(STORAGE_KEY_USE_COMPANY, JSON.stringify(useCompanyName))
+    localStorage.setItem(STORAGE_KEY_DOWNLOAD_JD, JSON.stringify(downloadJDWithPDF))
     setSettingsOpen(false)
   }
 
@@ -362,6 +375,8 @@ export default function Home() {
 
   const handleDownloadPDF = async () => {
     if (!resumeData) return
+    if (isDownloading) return
+    setIsDownloading(true)
 
     try {
       const { generateResumePDF } = await import("@/lib/pdf-templates")
@@ -374,23 +389,26 @@ export default function Home() {
       const dd = String(now.getDate()).padStart(2, "0")
       const yyyy = String(now.getFullYear())
       const safeCompany = useCompanyName && companyName?.trim() ? companyName.trim().replace(/[^a-zA-Z0-9 _-]/g, "_") : ""
+      const safeCompanyPart = safeCompany || ""
       // folderName shown to user as YYYY-MM-DD_HH-MM-SS - Company, use this for creation
       const safeFolder = `${yyyy}-${mm}-${dd}_${hh}-${mm1}-${ss}${safeCompany ? ` - ${safeCompany}` : ""}`
+      // always name the file `resume.pdf`
+      const safeFullName = personalInfo.fullName
+        ? String(personalInfo.fullName).trim().replace(/[^a-zA-Z0-9 _-]/g, "_")
+        : "resume"
 
-      console.log(saveInFolder)
       if (saveInFolder) {
-        // Inside the folder, always name the file `resume.pdf`
-        const safeFullName = personalInfo.fullName
-          ? String(personalInfo.fullName).trim().replace(/[^a-zA-Z0-9 _-]/g, "_")
-          : "resume"
         const filename = `${safeFullName}.pdf`
-        await generateResumePDF(resumeData, filename, saveInFolder, selectedTemplate, safeFolder)
+        await generateResumePDF(
+          resumeData,
+          filename,
+          saveInFolder,
+          selectedTemplate,
+          safeFolder,
+          downloadJDWithPDF ? jobDescription : undefined,
+        )
       } else {
         // Download as a single file: "Full Name - TargetCompany.pdf"
-        const safeFullName = personalInfo.fullName
-          ? String(personalInfo.fullName).trim().replace(/[^a-zA-Z0-9 _-]/g, "_")
-          : "resume"
-        const safeCompanyPart = safeCompany || ""
         const filename = safeCompanyPart
           ? `${safeFullName} - ${safeCompanyPart}.pdf`
           : `${safeFullName}.pdf`
@@ -399,6 +417,8 @@ export default function Home() {
     } catch (error) {
       console.error("PDF generation error:", error)
       setError("Failed to generate PDF. Please try again.")
+    } finally {
+      setIsDownloading(false)
     }
   }
 
@@ -643,14 +663,34 @@ Software Engineer, 09/2015 - 09/2019
             {/* Download Options */}
             <div>
               <h3 className="text-sm font-medium mb-3">Download Options</h3>
-              <div className="flex items-center gap-3">
-                <Checkbox
-                  checked={saveInFolder}
-                  onCheckedChange={(v) => setSaveInFolder(Boolean(v))}
-                />
-                <div>
-                  <div className="text-sm font-medium">Save inside dated folder (mm-dd-yyyy - Target Company Name)</div>
-                  <p className="text-xs text-muted-foreground">When enabled, the PDF will be saved inside a dated folder. When disabled, it will download as a single file..</p>
+              <div className="flex flex-column gap-3">
+                <div className="mt-4 space-x-3">
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      checked={saveInFolder}
+                      onCheckedChange={(v) => setSaveInFolder(Boolean(v))}
+                    />
+                    <div>
+                      <div className="text-sm font-medium">Save inside dated folder (yyyy-mm-dd_hh-mm-ss - Target Company Name)</div>
+                      <p className="text-xs text-muted-foreground">When enabled, the PDF will be saved inside a dated folder. When disabled, it will download as a single file..</p>
+                    </div>
+                  </div>
+                  <div className="ml-6">
+                    <div className="flex items-center gap-3">
+                      <Checkbox
+                        checked={downloadJDWithPDF}
+                        onCheckedChange={(v) => {
+                          if (!saveInFolder) return
+                          setDownloadJDWithPDF(Boolean(v))
+                        }}
+                        disabled={!saveInFolder}
+                      />
+                      <div className="ml-3">
+                        <div className="text-sm font-medium">Also download job description with resume</div>
+                        <p className="text-xs text-muted-foreground">When enabled and "Save inside dated folder" is on, your pasted job description will be saved as job-description.txt alongside the PDF download.</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div className="mt-4 space-y-3">
                   <div className="flex items-center gap-3">
@@ -723,9 +763,18 @@ Software Engineer, 09/2015 - 09/2019
                 />
               </div>
             )}
-            <Button onClick={handleDownloadPDF}>
-              <FileDown className="h-4 w-4 mr-2" />
-              Download PDF
+            <Button onClick={handleDownloadPDF} disabled={isDownloading}>
+              {isDownloading ? (
+                <>
+                  <Spinner className="h-4 w-4 mr-2" />
+                  Downloading
+                </>
+              ) : (
+                <>
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Download PDF
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
