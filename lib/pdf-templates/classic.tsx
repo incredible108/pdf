@@ -178,13 +178,10 @@ export const ClassicTemplate = ({ data }: { data: ResumeData }) => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Professional Experience</Text>
             {workexperience.map((exp, index) => (
-              <View key={index} style={index === 0 ? undefined : styles.experienceItem} wrap={true}>
-                <View wrap={false}>
-                  <View style={styles.experienceHeader}>
-                    {exp.companyname && <Text style={styles.experienceRole}>{exp.companyname}</Text>}
-                    {exp.duration && <Text style={styles.experienceDuration}>{exp.duration}</Text>}
-                  </View>
-                  <Text style={styles.experienceCompany}>{exp.role}</Text>
+              <View key={index} style={index == 0 ? undefined : styles.experienceItem}>
+                <View style={styles.experienceHeader}>
+                  <Text style={styles.experienceRole}>{exp.role}</Text>
+                  {exp.duration && <Text style={styles.experienceDuration}>{exp.duration}</Text>}
                 </View>
                 <View style={styles.bulletList}>
                   {exp.experience.map((bullet, bulletIndex) => (
