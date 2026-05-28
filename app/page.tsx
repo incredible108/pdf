@@ -41,10 +41,76 @@ const STORAGE_KEY_COMPANY = "resume_company_name"
 const STORAGE_KEY_USE_COMPANY = "resume_use_company_name"
 const STORAGE_KEY_DOWNLOAD_JD = "resume_download_jd_with_pdf"
 
-const PROMPT_TEXT = `Generate a fully tailored, ATS optimized, professionally written resume based on the provided career milestones and job description.
+const PROMPT_TEXT = `First, I will provide my template resume. Then, I will share different job descriptions one by one. For each job description, tailor my resume specifically to that role. Each tailored resume should align only with the provided job description and should not reference or relate to any others.
 
-The system must iterate and improve the resume until the ATS score exceeds 90 percent.
+- Tailor Conditions:
+    1. Resume Structure
+        
+        Resume must have only 4 sections:
+        - target_company
+        - Summary
+        - Technical Skills
+        - Professional Experience
+    2. Professional Summary
+        - Concise, professional, and clearly aligned with the job description, without subjects like "I" or "We".
+        - Include years of IT development experience from the Template Resume.
+        - Highlight experience and achievements with technical skills required in the job description.
+        - Emphasize experience with soft skills required in the job description and my Template Resume.
+        - Mention relevant industry experience from the job description with other industries from Template Resume.
+        - Up to 3-4 lines.
+    3. target_company
+        - Extract the company name from the job description exactly as written
+        - If no company name is present, use ""
+    4. For Professional Experience Section:
+        - Work experience from all companies (mentioned in Template Resume) must be included and fully detailed
+        - Each bullet point must align with the job description’s responsibilities and required technical skills.
+        - Each sentence must be LONG and descriptive, clearly outlining detailed responsibilities, achievements, and accomplishments, while naturally incorporating the technical skills, tools, and technologies used.
+        - Every sentence should include action verbs, technical skills, and soft skills from the job description where relevant.
+        - Each sentence must not be skills list sentence. They must be human readable, senior professional, outcome and achievement focused rather than what I did.
+        - Sentences must be written in a professional, Outcome and achievement focused, and results-oriented style suitable for ATS scanning and recruiter readability.
+        - Write each company’s experience with real-world projects from my Template Resumes’ Experience.
+        - Ensure each company’s listed experience reflects its respective role.
+        - Write each companies’ experience based on job description and my Template Resume’s Experience.
+        - Incorporate “nice-to-have” skills from the job description where relevant.
+        - Include soft skills from the job description, aligned with each company’s role.
+        - Ensure the timeline of skills is historically accurate (e.g., FastAPI, released in December 2018, should not be included in Stripe company experience, since employment ended in Auguest 2015). Apply this logic to all skills.
+        - Minimum 9 bullet points per company
+    5. For Technical Skills Section:
+        - Must include all technical skills, programming languages, frameworks, cloud, DevOps, tools and others mentioned in the job description.
+        - Also include “nice-to-have” skills.
+        - Include up to 60 skills if relevant.
+        - Always include my Template Resume’s Technical Skills
+        - Add all related skills from both required and nice-to-have lists.
+    6. Final Requirements:
+        - Resume must achieve **100% ATS score**.
+        - No spelling, grammar, readability, or formatting errors.
+        - Never include am dash or an dash like this GPT style symbols.
+    7. Output
+        - First save tailored resume in draft(don't show drafted resume) and evaluate how strong tailored resume matched with JD. (ATS score, Human Review Score, Seniority Score, like ATS: X/10 Human Review: Y/10 Seniority: Z/10) - (Seniority mean which parts are look like junior like resume)
+        - Provide why ATS score is X and why Human Review score is Y and why Seniority score is Z.
+        - Detect AI written style phrases like “Proven track record of”, “Results-driven professional”, “Highly motivated self-starter”, “Leveraged cutting-edge technologies”, “Passionate about driving innovation”, etc.
+        - Provide recommended fixes to increase ATS score and Human Review score and Seniority score.
+        - Then for the next step fix your recommend fixes and convert detected AI written style phrases to human style
+        - And again recommend fixes to increase ATS score, Human Review score and Seniority score, and also again detect AI written style phrases.
+        - Then for the next step fix your second recommend fixes and convert second detected AI written style phrases to human style.
+        - Repeat these steps until ATS score >= 9.5, Human Review score >= 9.3, Seniority score >=9.3
+        - After scores satisfied minimum requirements, provide again ATS score and Human Review score and Seniority score.
+        - And then provide final resume with below JSON format:
+            {
+              "target_company": "...",
+                "summary": "...",
+                  "skills": ["...", "..."],
+                    "workexperience": [
+                      {
+                        "companyname": "...",
+                        "role": "...",
+                        "duration": "MMM-YYYY - MMM-YYYY",
+                        "experience": ["...", "...", "..."]
+                      }
+                    ]
+            }
 
+<<<<<<< Updated upstream
 Return result only. Do not include explanations, notes, or intermediate versions.
 
 The content should only consists with alphabetic letters, numbers, mathmatic operations. do not make special letters like "𝑣𝑠"
@@ -159,6 +225,9 @@ Return only the final JSON resume with ATS score at least 90 percent
 Do not include explanations or intermediate results
 
 Career Milestone:
+=======
+Template Resume:
+>>>>>>> Stashed changes
 
 JD:`
 
@@ -298,7 +367,7 @@ export default function Home() {
     }
 
     if (!careerMilestones.trim()) {
-      setError("Please add your career milestones in Settings first")
+      setError("Please add your Template Resume in Settings first")
       return
     }
 
@@ -307,7 +376,7 @@ export default function Home() {
 
     try {
       // Build the full prompt
-      const fullPrompt = `${PROMPT_TEXT.replace("Career Milestone:", `Career Milestone:\n${careerMilestones}`).replace("JD:", `JD:\n${jobDescription}`)}`
+      const fullPrompt = `${PROMPT_TEXT.replace("Template Resume:", `Template Resume:\n${careerMilestones}`).replace("JD:", `JD:\n${jobDescription}`)}`
 
       // Call the Python backend
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
@@ -517,9 +586,9 @@ Requirements:
           </DialogHeader>
 
           <div className="space-y-6 py-4">
-            {/* Career Milestones */}
+            {/* Template Resumes */}
             <div>
-              <h3 className="text-sm font-medium mb-3">Career Milestones</h3>
+              <h3 className="text-sm font-medium mb-3">Template Resume</h3>
               <p className="text-xs text-muted-foreground mb-2">
                 Include your career path. This will be used to tailor your resume.
               </p>
@@ -780,40 +849,6 @@ Software Engineer, 09/2015 - 09/2019
         </DialogContent>
       </Dialog>
 
-      {/* Prompt Modal (read-only) */}
-      {/* <Dialog open={promptOpen} onOpenChange={setPromptOpen}>
-        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Resume Tailoring Prompt</DialogTitle>
-            <DialogDescription>
-              This is the prompt used for resume generation. Editing is disabled.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="my-4">
-            <Textarea
-              className="min-h-[300px] font-mono text-sm"
-              value={PROMPT_TEXT}
-              readOnly
-              placeholder="Prompt is read-only."
-            />
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                navigator.clipboard.writeText(PROMPT_TEXT)
-              }}
-            >
-              Copy to Clipboard
-            </Button>
-            <Button onClick={() => setPromptOpen(false)}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog> */}
     </main>
   )
 }
