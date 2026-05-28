@@ -6,18 +6,20 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { ResumePreview } from "@/components/resume-preview"
 import {
-  parseResumeContent,
   DEFAULT_PERSONAL_INFO,
   DEFAULT_EDUCATION,
   type ResumeData,
   type PersonalInfo,
   type Education,
 } from "@/lib/parse-resume"
-import { FileDown, FileText, AlertCircle, Settings, Plus, Trash2, Briefcase, Pencil, Eye } from "lucide-react"
+import { FileDown, AlertCircle, Settings, Plus, Trash2, Briefcase, Pencil, Eye } from "lucide-react"
 import { FunnyLoadingBar } from "@/components/funny-loading-bar"
 import { Input } from "@/components/ui/input"
+import { Spinner } from "@/components/ui/spinner"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { TemplateSelector } from "@/components/template-selector"
+import { DEFAULT_TEMPLATE, type TemplateId } from "@/lib/pdf-templates"
 import {
   Dialog,
   DialogContent,
@@ -26,212 +28,206 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { toast } from "@/components/ui/use-toast"
+import { Label } from "recharts"
+import { Checkbox } from "@/components/ui/checkbox"
 
 const STORAGE_KEY_PERSONAL = "resume_personal_info"
 const STORAGE_KEY_EDUCATION = "resume_education"
 const STORAGE_KEY_CAREER_MILESTONES = "resume_career_milestones"
+const STORAGE_KEY_TEMPLATE = "resume_template"
+const STORAGE_KEY_SAVE_IN_FOLDER = "resume_save_in_folder"
+const STORAGE_KEY_COMPANY = "resume_company_name"
+const STORAGE_KEY_USE_COMPANY = "resume_use_company_name"
+const STORAGE_KEY_DOWNLOAD_JD = "resume_download_jd_with_pdf"
 
-const PROMPT_TEXT = `Generate a fully tailored, ATS-optimized, and professionally written resume based on my career milestones and the provided job description.
+const PROMPT_TEXT = `First, I will provide my template resume. Then, I will share different job descriptions one by one. For each job description, tailor my resume specifically to that role. Each tailored resume should align only with the provided job description and should not reference or relate to any others.
 
-The system must ITERATE and SELF-IMPROVE the resume until the ATS score exceeds 90%.
+- Tailor Conditions:
+    1. Resume Structure
+        
+        Resume must have only 4 sections:
+        - target_company
+        - Summary
+        - Technical Skills
+        - Professional Experience
+    2. Professional Summary
+        - Concise, professional, and clearly aligned with the job description, without subjects like "I" or "We".
+        - Include years of IT development experience from the Template Resume.
+        - Highlight experience and achievements with technical skills required in the job description.
+        - Emphasize experience with soft skills required in the job description and my Template Resume.
+        - Mention relevant industry experience from the job description with other industries from Template Resume.
+        - Up to 3-4 lines.
+    3. target_company
+        - Extract the company name from the job description exactly as written
+        - If no company name is present, use ""
+    4. For Professional Experience Section:
+        - Work experience from all companies (mentioned in Template Resume) must be included and fully detailed
+        - Each bullet point must align with the job description’s responsibilities and required technical skills.
+        - Each sentence must be LONG and descriptive, clearly outlining detailed responsibilities, achievements, and accomplishments, while naturally incorporating the technical skills, tools, and technologies used.
+        - Every sentence should include action verbs, technical skills, and soft skills from the job description where relevant.
+        - Each sentence must not be skills list sentence. They must be human readable, senior professional, outcome and achievement focused rather than what I did.
+        - Sentences must be written in a professional, Outcome and achievement focused, and results-oriented style suitable for ATS scanning and recruiter readability.
+        - Write each company’s experience with real-world projects from my Template Resumes’ Experience.
+        - Ensure each company’s listed experience reflects its respective role.
+        - Write each companies’ experience based on job description and my Template Resume’s Experience.
+        - Incorporate “nice-to-have” skills from the job description where relevant.
+        - Include soft skills from the job description, aligned with each company’s role.
+        - Ensure the timeline of skills is historically accurate (e.g., FastAPI, released in December 2018, should not be included in Stripe company experience, since employment ended in Auguest 2015). Apply this logic to all skills.
+        - Minimum 9 bullet points per company
+    5. For Technical Skills Section:
+        - Must include all technical skills, programming languages, frameworks, cloud, DevOps, tools and others mentioned in the job description.
+        - Also include “nice-to-have” skills.
+        - Include up to 60 skills if relevant.
+        - Always include my Template Resume’s Technical Skills
+        - Add all related skills from both required and nice-to-have lists.
+    6. Final Requirements:
+        - Resume must achieve **100% ATS score**.
+        - No spelling, grammar, readability, or formatting errors.
+        - Never include am dash or an dash like this GPT style symbols.
+    7. Output
+        - First save tailored resume in draft(don't show drafted resume) and evaluate how strong tailored resume matched with JD. (ATS score, Human Review Score, Seniority Score, like ATS: X/10 Human Review: Y/10 Seniority: Z/10) - (Seniority mean which parts are look like junior like resume)
+        - Provide why ATS score is X and why Human Review score is Y and why Seniority score is Z.
+        - Detect AI written style phrases like “Proven track record of”, “Results-driven professional”, “Highly motivated self-starter”, “Leveraged cutting-edge technologies”, “Passionate about driving innovation”, etc.
+        - Provide recommended fixes to increase ATS score and Human Review score and Seniority score.
+        - Then for the next step fix your recommend fixes and convert detected AI written style phrases to human style
+        - And again recommend fixes to increase ATS score, Human Review score and Seniority score, and also again detect AI written style phrases.
+        - Then for the next step fix your second recommend fixes and convert second detected AI written style phrases to human style.
+        - Repeat these steps until ATS score >= 9.5, Human Review score >= 9.3, Seniority score >=9.3
+        - After scores satisfied minimum requirements, provide again ATS score and Human Review score and Seniority score.
+        - And then provide final resume with below JSON format:
+            {
+              "target_company": "...",
+                "summary": "...",
+                  "skills": ["...", "..."],
+                    "workexperience": [
+                      {
+                        "companyname": "...",
+                        "role": "...",
+                        "duration": "MMM-YYYY - MMM-YYYY",
+                        "experience": ["...", "...", "..."]
+                      }
+                    ]
+            }
 
----
+<<<<<<< Updated upstream
+Return result only. Do not include explanations, notes, or intermediate versions.
 
-## 🔁 Iteration & ATS Optimization Loop (MANDATORY)
-
-After generating the resume:
-
-1. Evaluate the resume against the job description using an ATS scoring model (0–100%).
-2. Provide a breakdown of the ATS score based on:
-
-   - Keyword match
-   - Skills alignment
-   - Experience relevance
-   - Role/title alignment
-   - Use of measurable impact
-   - Formatting & ATS readability
-3. If the ATS score is BELOW 90%:
-
-   - Identify ALL gaps (missing keywords, weak phrasing, missing tools, etc.)
-   - Improve the resume by:
-     - Injecting missing keywords naturally
-     - Strengthening bullet points with more measurable impact
-     - Improving alignment with required and preferred skills
-     - Adjusting phrasing to match recruiter search patterns
-     - Enhancing technical depth where needed
-4. Regenerate the FULL resume with improvements.
-5. Repeat this process until:
-   ✅ ATS Score ≥ 90%
-6. Output ONLY the FINAL optimized resume (do NOT include intermediate versions unless explicitly requested).
-
----
-
-## Required Output Format
-
-The final output must strictly follow this exact structure:
-
-**Title:**
-**Professional Summary:**
-**Skills:**
-**Work Experience:**
-
-Do not change this format.
-
-========== Example Format ==========
-Title: Senior Full Stack Software Engineer
-Professional Summary: [4–6 lines tailored to the job description, including ATS keywords and measurable impact]
-Skills: JavaScript, React, Node.js, AWS, System Design, ...
-Work Experience:
-Company Name | Role | Dates
-- Bullet point 1 with Action + Technology + Project Scope + Business Impact
-- Bullet point 2 with Action + Technology + Project Scope + Business Impact
-- ... 
-============================
-
----
-
-## Title
-
-Generate a highly targeted and job-specific professional title that directly matches the job description.
-
-The title should reflect seniority and alignment with the target role.
-
-Examples:
-
-* Senior Full Stack Software Engineer
-* Senior .NET / React Engineer
-* Principal Software Engineer
-* Senior Cloud Application Developer
-* Lead Backend Engineer
-
-The title must be ATS-friendly and recruiter-search optimized.
-
----
-
-## Professional Summary
-
-Write a strong, concise, and impactful professional summary.
-
-Requirements:
-
-* 4–6 lines
-* senior-level tone
-* highly tailored to the job description
-* include top ATS keywords naturally
-* highlight years of experience
-* mention core technical strengths
-* include relevant domain/industry expertise
-* reflect architecture, development, modernization, and leadership capabilities
-
-The summary must immediately position the candidate as a strong match for the role.
+The content should only consists with alphabetic letters, numbers, mathmatic operations. do not make special letters like "𝑣𝑠"
 
 ---
 
-## Skills
+Iteration and ATS Optimization Loop
 
-Generate the most important and critical technical skills up to 45 items, strictly separated by commas in a single line.
+1 Evaluate the resume using an ATS scoring model from 0 to 100 percent based on:
 
-This section must be highly ATS-optimized and based on:
+* Keyword match
+* Skills alignment
+* Experience relevance
+* Role and title alignment
+* Measurable impact
+* Formatting and ATS readability
 
-1. the exact job description
-2. top recruiter search keywords
-3. closely related technologies
-4. industry-critical terminology
-5. adjacent tools and platforms commonly searched for this role
+2 If score is below 90 percent:
 
-The skills must prioritize the most critical technologies first.
+* Identify all gaps such as missing keywords, weak phrasing, or missing skills
+* Improve the resume by:
 
-Maximum: 45 skills
-Format: comma-separated only
+  * Adding missing keywords naturally
+  * Strengthening bullet points with measurable impact
+  * Improving alignment with required and preferred skills
+  * Adjusting phrasing for recruiter search optimization
+  * Enhancing technical depth
 
----
+3 Regenerate the full resume
 
-## Work Experience
+4 Repeat until ATS score is at least 90 percent
 
-This section must be the strongest part of the output.
-
-For each company, generate more than 8 bullet points
-(minimum 9 bullet points per company).
-
-Each company must have:
-
-* unique bullet points
-* unique project scope
-* unique business goals
-* unique engineering challenges
-* unique measurable outcomes
+5 Output only the final optimized resume
 
 ---
 
-## Technical Requirements for Work Experience
+Required JSON Output Format
 
-Every bullet point must clearly explain:
-
-* what project/system was worked on
-* what technologies were used
-* why those technologies were chosen
-* what business problem was solved
-* what measurable impact was delivered
-
-Preferred structure:
-
-Action + Technology + Project Scope + Business Impact
-
----
-
-## Timeline Accuracy Rule
-
-All technologies must be period-accurate.
-
-Do not include tools or frameworks that were not available during that time.
-
-This rule is mandatory.
+{
+"target_company": "...",
+"summary": "...",
+"skills": ["...", "..."],
+"workexperience": [
+{
+"companyname": "...",
+"role": "...",
+"duration": "MMM YYYY - MMM YYYY",(like Mar 2020 - Apr 2024)
+"experience": ["...", "...", "..."]
+}
+]
+}
 
 ---
 
-## Tailoring Requirements
+Field Requirements
 
-The resume must be fully customized to the provided job description.
+target_company
 
-Include:
+* Extract the company name from the job description exactly as written
+* If no company name is present, use ""
 
-* all required skills
-* preferred skills
-* role-specific terminology
-* architecture keywords
-* domain language
-* leadership expectations
-* critical engineering keywords recruiters search for
+Summary
+
+* 4 to 6 lines
+* Senior level tone
+* Include key ATS keywords naturally
+* Highlight experience, technical strengths, domain expertise, and leadership
+
+Skills
+
+* Maximum 50 items
+* Include all required and preferred skills from the job description
+* Include related and commonly searched technologies
+* No duplicates
+
+Work Experience
+
+* Minimum 9 bullet points per company
+* Work experience from all companies (mentioned in Career Milestone) must be included and fully detailed
+* Each company must reflect unique domain, system, project scope, business goals, challenges and measurable outcomes
+* Each sentence must not be skills list sentence. They must be human readable, senior professional, outcome and achievement focused rather than what I did.
+* Each sentence must be a bit long and descriptive.
+* bullets must clearly describe:
+  * What project/system was built
+  * Technologies used
+  * Why those technologies were chosen
+  * Business problem solved
+  * Impact delivered without EXACT numbers
+* Use structure: Action plus Technology plus Scope plus Impact
+* No repeated wording or structure across bullets
 
 ---
 
-## Uniqueness Requirement
+Rules
 
-Every company must reflect its own:
+Timeline Accuracy
 
-* business domain
-* engineering priorities
-* system architecture
-* product objectives
-* measurable business value
+* Only include technologies available during the specified time period
 
-No repeated bullets.
-No repeated sentence structures.
-No recycled wording.
+Tailoring
+
+* Fully align with job description
+* Include all required and preferred skills
+* Use role specific terminology and architecture language
 
 ---
 
-## Final Output Rule
+Final Output Rule
 
-Only output the FINAL resume version that achieves:
+Return only the final JSON resume with ATS score at least 90 percent
 
-✅ ATS Score ≥ 90%
-❌ Do NOT show intermediate drafts
-❌ Do NOT show scoring iterations unless asked
-
-The result must be production-ready and recruiter-quality.
+Do not include explanations or intermediate results
 
 Career Milestone:
+=======
+Template Resume:
+>>>>>>> Stashed changes
 
 JD:`
 
@@ -245,9 +241,17 @@ export default function Home() {
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>(DEFAULT_PERSONAL_INFO)
   const [education, setEducation] = useState<Education[]>(DEFAULT_EDUCATION)
   const [careerMilestones, setCareerMilestones] = useState("")
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>(DEFAULT_TEMPLATE)
 
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewEditable, setPreviewEditable] = useState(false)
+
+  const [companyName, setCompanyName] = useState("")
+  const [useCompanyName, setUseCompanyName] = useState(true)
+  const [saveInFolder, setSaveInFolder] = useState(false)
+  const [downloadJDWithPDF, setDownloadJDWithPDF] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
   // const [promptOpen, setPromptOpen] = useState(false)
 
   // Load saved data on mount (prompt is no longer loaded from storage)
@@ -282,14 +286,59 @@ export default function Home() {
     if (savedCareerMilestone) {
       setCareerMilestones(savedCareerMilestone)
     }
+
+    const savedTemplate = localStorage.getItem(STORAGE_KEY_TEMPLATE)
+    if (savedTemplate) {
+      setSelectedTemplate(savedTemplate as TemplateId)
+    }
+    const savedSaveInFolder = localStorage.getItem(STORAGE_KEY_SAVE_IN_FOLDER)
+    if (savedSaveInFolder !== null) {
+      try {
+        setSaveInFolder(JSON.parse(savedSaveInFolder))
+      } catch {
+        setSaveInFolder(savedSaveInFolder === 'true')
+      }
+    }
+    const savedCompany = localStorage.getItem(STORAGE_KEY_COMPANY)
+    if (savedCompany) {
+      setCompanyName(savedCompany)
+    }
+    const savedUseCompany = localStorage.getItem(STORAGE_KEY_USE_COMPANY)
+    if (savedUseCompany !== null) {
+      try {
+        setUseCompanyName(JSON.parse(savedUseCompany))
+      } catch {
+        setUseCompanyName(savedUseCompany === 'true')
+      }
+    }
+    const savedDownloadJD = localStorage.getItem(STORAGE_KEY_DOWNLOAD_JD)
+    if (savedDownloadJD !== null) {
+      try {
+        setDownloadJDWithPDF(JSON.parse(savedDownloadJD))
+      } catch {
+        setDownloadJDWithPDF(savedDownloadJD === 'true')
+      }
+    }
   }, [])
 
   // Prompt is no longer saved to localStorage
+  const handlePreviewEditable = () => {
+    setPreviewEditable(!previewEditable)
+  }
+
+  const handleSetCompanyName = (name: string) => {
+    setCompanyName(name)
+  }
 
   const handleSaveSettings = () => {
     localStorage.setItem(STORAGE_KEY_PERSONAL, JSON.stringify(personalInfo))
     localStorage.setItem(STORAGE_KEY_EDUCATION, JSON.stringify(education))
     localStorage.setItem(STORAGE_KEY_CAREER_MILESTONES, careerMilestones)
+    localStorage.setItem(STORAGE_KEY_TEMPLATE, selectedTemplate)
+    localStorage.setItem(STORAGE_KEY_SAVE_IN_FOLDER, JSON.stringify(saveInFolder))
+    localStorage.setItem(STORAGE_KEY_COMPANY, String(companyName || ''))
+    localStorage.setItem(STORAGE_KEY_USE_COMPANY, JSON.stringify(useCompanyName))
+    localStorage.setItem(STORAGE_KEY_DOWNLOAD_JD, JSON.stringify(downloadJDWithPDF))
     setSettingsOpen(false)
   }
 
@@ -318,7 +367,7 @@ export default function Home() {
     }
 
     if (!careerMilestones.trim()) {
-      setError("Please add your career milestones in Settings first")
+      setError("Please add your Template Resume in Settings first")
       return
     }
 
@@ -327,10 +376,17 @@ export default function Home() {
 
     try {
       // Build the full prompt
-      const fullPrompt = `${PROMPT_TEXT.replace("Career Milestone:", `Career Milestone:\n${careerMilestones}`).replace("JD:", `JD:\n${jobDescription}`)}`
+      const fullPrompt = `${PROMPT_TEXT.replace("Template Resume:", `Template Resume:\n${careerMilestones}`).replace("JD:", `JD:\n${jobDescription}`)}`
 
       // Call the Python backend
-      const response = await fetch("https://pdf-backend-495j.onrender.com/scrape-qwen", {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+      if (!backendUrl) {
+        setError("Backend URL not configured. Please set NEXT_PUBLIC_BACKEND_URL environment variable.")
+        setIsGenerating(false)
+        return
+      }
+      console.log("Using backend URL:", backendUrl)
+      const response = await fetch(`${backendUrl}/scrape-deepseek`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -350,16 +406,30 @@ export default function Home() {
         throw new Error("No response received from backend")
       }
 
+      const cleaned = generatedContent.slice(
+        generatedContent.indexOf('{'),
+        generatedContent.lastIndexOf('}') + 1
+      );
       // Parse the generated resume content
-      const parsed = parseResumeContent(generatedContent)
+      const parsed = JSON.parse(cleaned)
+      console.log("title:", parsed.title)
+      console.log("error:", parsed.error)
+
+      if (parsed.error) {
+        const msg = String(parsed.error)
+        toast({ title: "Generation error", description: msg })
+        setError(`Generation error: ${msg}`)
+        return
+      }
+
+      handleSetCompanyName(parsed.target_company)
 
       const fullResumeData: ResumeData = {
         personalInfo,
         education,
         summary: parsed.summary || "",
-        technicalSkills: parsed.technicalSkills || [],
-        professionalExperience: parsed.professionalExperience || [],
-        title: parsed.title || "",
+        skills: parsed.skills || [],
+        workexperience: parsed.workexperience || [],
       }
 
       setResumeData(fullResumeData)
@@ -374,14 +444,50 @@ export default function Home() {
 
   const handleDownloadPDF = async () => {
     if (!resumeData) return
+    if (isDownloading) return
+    setIsDownloading(true)
 
     try {
-      const { generateResumePDF } = await import("@/lib/generate-pdf")
-      const filename = `${personalInfo.fullName.replace(/\s+/g, "_")}_Resume.pdf`
-      await generateResumePDF(resumeData, filename)
+      const { generateResumePDF } = await import("@/lib/pdf-templates")
+      // Build a safe folder name: YYYY-MM-DD_HH-MM-SS - CompanyName
+      const now = new Date()
+      const hh = String(now.getHours()).padStart(2, "0")
+      const mm1 = String(now.getMinutes()).padStart(2, "0")
+      const ss = String(now.getSeconds()).padStart(2, "0")
+      const mm = String(now.getMonth() + 1).padStart(2, "0")
+      const dd = String(now.getDate()).padStart(2, "0")
+      const yyyy = String(now.getFullYear())
+      const safeCompany = useCompanyName && companyName?.trim() ? companyName.trim().replace(/[^a-zA-Z0-9 _-]/g, "_") : ""
+      const safeCompanyPart = safeCompany || ""
+      // folderName shown to user as YYYY-MM-DD_HH-MM-SS - Company, use this for creation
+      const safeFolder = `${yyyy}-${mm}-${dd}_${hh}-${mm1}-${ss}${safeCompany ? ` - ${safeCompany}` : ""}`
+      // always name the file `resume.pdf`
+      const safeFullName = personalInfo.fullName
+        ? String(personalInfo.fullName).trim().replace(/[^a-zA-Z0-9 _-]/g, "_")
+        : "resume"
+
+      if (saveInFolder) {
+        const filename = `${safeFullName}.pdf`
+        await generateResumePDF(
+          resumeData,
+          filename,
+          saveInFolder,
+          selectedTemplate,
+          safeFolder,
+          downloadJDWithPDF ? jobDescription : undefined,
+        )
+      } else {
+        // Download as a single file: "Full Name - TargetCompany.pdf"
+        const filename = safeCompanyPart
+          ? `${safeFullName} - ${safeCompanyPart}.pdf`
+          : `${safeFullName}.pdf`
+        await generateResumePDF(resumeData, filename, saveInFolder, selectedTemplate)
+      }
     } catch (error) {
       console.error("PDF generation error:", error)
       setError("Failed to generate PDF. Please try again.")
+    } finally {
+      setIsDownloading(false)
     }
   }
 
@@ -480,9 +586,9 @@ Requirements:
           </DialogHeader>
 
           <div className="space-y-6 py-4">
-            {/* Career Milestones */}
+            {/* Template Resumes */}
             <div>
-              <h3 className="text-sm font-medium mb-3">Career Milestones</h3>
+              <h3 className="text-sm font-medium mb-3">Template Resume</h3>
               <p className="text-xs text-muted-foreground mb-2">
                 Include your career path. This will be used to tailor your resume.
               </p>
@@ -515,6 +621,15 @@ Software Engineer, 09/2015 - 09/2019
                     />
                   </Field>
                   <Field>
+                    <FieldLabel>Title</FieldLabel>
+                    <Input
+                      value={personalInfo.title}
+                      onChange={(e) => setPersonalInfo({ ...personalInfo, title: e.target.value })}
+                    />
+                  </Field>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <Field>
                     <FieldLabel>Email</FieldLabel>
                     <Input
                       type="email"
@@ -522,8 +637,6 @@ Software Engineer, 09/2015 - 09/2019
                       onChange={(e) => setPersonalInfo({ ...personalInfo, email: e.target.value })}
                     />
                   </Field>
-                </div>
-                <div className="grid sm:grid-cols-2 gap-4">
                   <Field>
                     <FieldLabel>Phone</FieldLabel>
                     <Input
@@ -531,6 +644,8 @@ Software Engineer, 09/2015 - 09/2019
                       onChange={(e) => setPersonalInfo({ ...personalInfo, phone: e.target.value })}
                     />
                   </Field>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
                   <Field>
                     <FieldLabel>Location</FieldLabel>
                     <Input
@@ -601,6 +716,65 @@ Software Engineer, 09/2015 - 09/2019
                 ))}
               </div>
             </div>
+
+            {/* PDF Template Selection */}
+            <div>
+              <h3 className="text-sm font-medium mb-3">PDF Template</h3>
+              <p className="text-xs text-muted-foreground mb-3">
+                Choose a template style for your PDF resume download.
+              </p>
+              <TemplateSelector
+                value={selectedTemplate}
+                onChange={setSelectedTemplate}
+              />
+            </div>
+
+            {/* Download Options */}
+            <div>
+              <h3 className="text-sm font-medium mb-3">Download Options</h3>
+              <div className="flex flex-column gap-3">
+                <div className="mt-4 space-x-3">
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      checked={saveInFolder}
+                      onCheckedChange={(v) => setSaveInFolder(Boolean(v))}
+                    />
+                    <div>
+                      <div className="text-sm font-medium">Save inside dated folder (yyyy-mm-dd_hh-mm-ss - Target Company Name)</div>
+                      <p className="text-xs text-muted-foreground">When enabled, the PDF will be saved inside a dated folder. When disabled, it will download as a single file..</p>
+                    </div>
+                  </div>
+                  <div className="ml-6">
+                    <div className="flex items-center gap-3">
+                      <Checkbox
+                        checked={downloadJDWithPDF}
+                        onCheckedChange={(v) => {
+                          if (!saveInFolder) return
+                          setDownloadJDWithPDF(Boolean(v))
+                        }}
+                        disabled={!saveInFolder}
+                      />
+                      <div className="ml-3">
+                        <div className="text-sm font-medium">Also download job description with resume</div>
+                        <p className="text-xs text-muted-foreground">When enabled and "Save inside dated folder" is on, your pasted job description will be saved as job-description.txt alongside the PDF download.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      checked={useCompanyName}
+                      onCheckedChange={(v) => setUseCompanyName(Boolean(v))}
+                    />
+                    <div>
+                      <div className="text-sm font-medium">Include company name in folder/file name</div>
+                      <p className="text-xs text-muted-foreground">When enabled, the target company name will be appended to folder and file names where applicable.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <DialogFooter>
@@ -628,7 +802,8 @@ Software Engineer, 09/2015 - 09/2019
             <div className="border rounded-lg overflow-hidden shadow-sm my-4">
               <ResumePreview
                 data={resumeData}
-                editable={false}
+                editable={previewEditable}
+                onDataChange={setResumeData}
               />
             </div>
           )}
@@ -637,48 +812,43 @@ Software Engineer, 09/2015 - 09/2019
             <Button variant="outline" onClick={() => setPreviewOpen(false)}>
               Close
             </Button>
-            <Button onClick={handleDownloadPDF}>
-              <FileDown className="h-4 w-4 mr-2" />
-              Download PDF
+            <Button variant="outline" onClick={() => handlePreviewEditable()}>
+              {previewEditable ? "Done" : "Edit"}
+            </Button>
+            {useCompanyName && (
+              <div className="flex items-center gap-4 max-w-xl">
+                <Label
+                  className="w-40 text-sm font-medium text-gray-700"
+                >
+                  Target Company Name
+                </Label>
+
+                <Input
+                  id="companyName"
+                  value={companyName}
+                  onChange={(e) => handleSetCompanyName(e.target.value)}
+                  placeholder="Enter target company name"
+                  className="flex-1 rounded-xl border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                />
+              </div>
+            )}
+            <Button onClick={handleDownloadPDF} disabled={isDownloading}>
+              {isDownloading ? (
+                <>
+                  <Spinner className="h-4 w-4 mr-2" />
+                  Downloading
+                </>
+              ) : (
+                <>
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Download PDF
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Prompt Modal (read-only) */}
-      {/* <Dialog open={promptOpen} onOpenChange={setPromptOpen}>
-        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Resume Tailoring Prompt</DialogTitle>
-            <DialogDescription>
-              This is the prompt used for resume generation. Editing is disabled.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="my-4">
-            <Textarea
-              className="min-h-[300px] font-mono text-sm"
-              value={PROMPT_TEXT}
-              readOnly
-              placeholder="Prompt is read-only."
-            />
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                navigator.clipboard.writeText(PROMPT_TEXT)
-              }}
-            >
-              Copy to Clipboard
-            </Button>
-            <Button onClick={() => setPromptOpen(false)}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog> */}
     </main>
   )
 }

@@ -1,7 +1,6 @@
-import { pdf, Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer"
-import type { ResumeData } from "./parse-resume"
+import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer"
+import type { ResumeData } from "../parse-resume"
 
-// Create styles matching the resume preview
 const styles = StyleSheet.create({
   page: {
     padding: 40,
@@ -25,7 +24,7 @@ const styles = StyleSheet.create({
   },
   jobTitle: {
     fontSize: 14,
-    color: "#3b385a",
+    color: "#2d3542",
     marginBottom: 8,
   },
   contactRow: {
@@ -59,7 +58,7 @@ const styles = StyleSheet.create({
   summaryText: {
     fontSize: 10,
     lineHeight: 1.5,
-    color: "#374151",
+    color: "#2d3542",
   },
   skillsContainer: {
     flexDirection: "row",
@@ -72,7 +71,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 4,
     fontSize: 9,
-    color: "#374151",
+    color: "#2d3542",
   },
   experienceItem: {
     marginTop: 8,
@@ -90,11 +89,11 @@ const styles = StyleSheet.create({
   },
   experienceDuration: {
     fontSize: 9,
-    color: "#6b7280",
+    color: "#2d3542",
   },
   experienceCompany: {
     fontSize: 10,
-    color: "#4b5563",
+    color: "#2d3542",
     fontStyle: "italic",
     marginBottom: 4,
   },
@@ -108,13 +107,13 @@ const styles = StyleSheet.create({
   bullet: {
     width: 10,
     fontSize: 10,
-    color: "#374151",
+    color: "#2d3542",
   },
   bulletText: {
     flex: 1,
     fontSize: 9,
     lineHeight: 1.4,
-    color: "#374151",
+    color: "#2d3542",
   },
   educationHeader: {
     flexDirection: "row",
@@ -137,19 +136,16 @@ const styles = StyleSheet.create({
   },
 })
 
-// Resume PDF Document Component
-const ResumeDocument = ({ data }: { data: ResumeData }) => {
-  const { personalInfo, education, summary, technicalSkills, professionalExperience, title } = data
-
+export const ClassicTemplate = ({ data }: { data: ResumeData }) => {
+  const { personalInfo, education, summary, skills, workexperience } = data
   const contactItems = [personalInfo.phone, personalInfo.email, personalInfo.location].filter(Boolean)
 
   return (
     <Document>
       <Page size="LETTER" style={styles.page}>
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.name}>{personalInfo.fullName}</Text>
-          <Text style={styles.jobTitle}>{title}</Text>
+          <Text style={styles.jobTitle}>{personalInfo.title}</Text>
           <View style={styles.contactRow}>
             {contactItems.map((item, index) => (
               <View key={index} style={{ flexDirection: "row" }}>
@@ -160,7 +156,6 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
           </View>
         </View>
 
-        {/* Professional Summary */}
         {summary && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Professional Summary</Text>
@@ -168,34 +163,29 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
           </View>
         )}
 
-        {/* Technical Skills */}
-        {technicalSkills.length > 0 && (
+        {skills.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Technical Skills</Text>
             <View style={styles.skillsContainer}>
-              {technicalSkills.map((skill, index) => (
-                <Text key={index} style={styles.skillBadge}>
-                  {skill}
-                </Text>
+              {skills.map((skill, index) => (
+                <Text key={index} style={styles.skillBadge}>{skill}</Text>
               ))}
             </View>
           </View>
         )}
 
-        {/* Professional Experience */}
-        {professionalExperience.length > 0 && (
+        {workexperience.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Professional Experience</Text>
-            {professionalExperience.map((exp, index) => (
+            {workexperience.map((exp, index) => (
               <View key={index} style={index == 0 ? undefined : styles.experienceItem}>
                 <View style={styles.experienceHeader}>
                   <Text style={styles.experienceRole}>{exp.role}</Text>
                   {exp.duration && <Text style={styles.experienceDuration}>{exp.duration}</Text>}
                 </View>
-                {exp.company && <Text style={styles.experienceCompany}>{exp.company}</Text>}
                 <View style={styles.bulletList}>
-                  {exp.bullets.map((bullet, bulletIndex) => (
-                      <View key={bulletIndex} style={styles.bulletItem} wrap={false}>
+                  {exp.experience.map((bullet, bulletIndex) => (
+                    <View key={bulletIndex} style={styles.bulletItem} wrap={false}>
                       <Text style={styles.bullet}>•</Text>
                       <Text style={styles.bulletText}>{bullet}</Text>
                     </View>
@@ -206,11 +196,10 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
           </View>
         )}
 
-        {/* Education */}
-        <View style={styles.section}>
+        <View style={styles.section} wrap={false}>
           <Text style={styles.sectionTitle}>Education</Text>
           {education.map((edu, index) => (
-            <View key={index} style={[styles.educationHeader, index > 0 && { marginTop: 8 }]}>
+            <View key={index} style={[styles.educationHeader, index > 0 ? { marginTop: 8 } : {}]}>
               <View>
                 <Text style={styles.educationDegree}>{edu.degree}</Text>
                 <Text style={styles.educationSchool}>{edu.school}</Text>
@@ -222,17 +211,4 @@ const ResumeDocument = ({ data }: { data: ResumeData }) => {
       </Page>
     </Document>
   )
-}
-
-export async function generateResumePDF(data: ResumeData, filename: string): Promise<void> {
-  const blob = await pdf(<ResumeDocument data={data} />).toBlob()
-
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement("a")
-  link.href = url
-  link.download = filename
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
 }

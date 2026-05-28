@@ -12,9 +12,9 @@ interface ResumePreviewProps {
   editable?: boolean
   onDataChange?: (data: ResumeData) => void
 }
-
+``
 export function ResumePreview({ data, editable = false, onDataChange }: ResumePreviewProps) {
-  const { personalInfo, education, summary, technicalSkills, professionalExperience, title } = data
+  const { personalInfo, education, summary, skills, workexperience } = data
 
   const updateData = (updates: Partial<ResumeData>) => {
     if (onDataChange) {
@@ -32,72 +32,68 @@ export function ResumePreview({ data, editable = false, onDataChange }: ResumePr
     updateData({ summary: value })
   }
 
-  const updateTitle = (value: string) => {
-    updateData({ title: value })
-  }
-
   const updateSkill = (index: number, value: string) => {
-    const newSkills = [...technicalSkills]
+    const newSkills = [...skills]
     newSkills[index] = value
-    updateData({ technicalSkills: newSkills })
+    updateData({ skills: newSkills })
   }
 
   const addSkill = () => {
-    updateData({ technicalSkills: [...technicalSkills, "New Skill"] })
+    updateData({ skills: [...skills, "New Skill"] })
   }
 
   const removeSkill = (index: number) => {
-    updateData({ technicalSkills: technicalSkills.filter((_, i) => i !== index) })
+    updateData({ skills: skills.filter((_, i) => i !== index) })
   }
 
   const updateExperience = (
     expIndex: number,
-    field: keyof (typeof professionalExperience)[0],
+    field: keyof (typeof workexperience)[0],
     value: string | string[]
   ) => {
-    const newExperiences = [...professionalExperience]
+    const newExperiences = [...workexperience]
     newExperiences[expIndex] = { ...newExperiences[expIndex], [field]: value }
-    updateData({ professionalExperience: newExperiences })
+    updateData({ workexperience: newExperiences })
   }
 
   const updateBullet = (expIndex: number, bulletIndex: number, value: string) => {
-    const newExperiences = [...professionalExperience]
-    const newBullets = [...newExperiences[expIndex].bullets]
+    const newExperiences = [...workexperience]
+    const newBullets = [...newExperiences[expIndex].experience]
     newBullets[bulletIndex] = value
-    newExperiences[expIndex] = { ...newExperiences[expIndex], bullets: newBullets }
-    updateData({ professionalExperience: newExperiences })
+    newExperiences[expIndex] = { ...newExperiences[expIndex], experience: newBullets }
+    updateData({ workexperience: newExperiences })
   }
 
   const addBullet = (expIndex: number) => {
-    const newExperiences = [...professionalExperience]
+    const newExperiences = [...workexperience]
     newExperiences[expIndex] = {
       ...newExperiences[expIndex],
-      bullets: [...newExperiences[expIndex].bullets, "New bullet point"]
+      experience: [...newExperiences[expIndex].experience, "New bullet point"]
     }
-    updateData({ professionalExperience: newExperiences })
+    updateData({ workexperience: newExperiences })
   }
 
   const removeBullet = (expIndex: number, bulletIndex: number) => {
-    const newExperiences = [...professionalExperience]
+    const newExperiences = [...workexperience]
     newExperiences[expIndex] = {
       ...newExperiences[expIndex],
-      bullets: newExperiences[expIndex].bullets.filter((_, i) => i !== bulletIndex)
+      experience: newExperiences[expIndex].experience.filter((_, i) => i !== bulletIndex)
     }
-    updateData({ professionalExperience: newExperiences })
+    updateData({ workexperience: newExperiences })
   }
 
   const addExperience = () => {
     updateData({
-      professionalExperience: [
-        ...professionalExperience,
-        { role: "New Role", company: "Company Name", duration: "Start - End", bullets: ["Bullet point"] }
+      workexperience: [
+        ...workexperience,
+        { role: "New Role", companyname: "Company Name", duration: "Start - End", experience: ["Bullet point"] }
       ]
     })
   }
 
   const removeExperience = (index: number) => {
     updateData({
-      professionalExperience: professionalExperience.filter((_, i) => i !== index)
+      workexperience: workexperience.filter((_, i) => i !== index)
     })
   }
 
@@ -176,8 +172,8 @@ export function ResumePreview({ data, editable = false, onDataChange }: ResumePr
               placeholder="Full Name"
             />
             <Input
-              value={title}
-              onChange={(e) => updateTitle(e.target.value)}
+              value={personalInfo.title}
+              onChange={(e) => updatePersonalInfo("title", e.target.value)}
               className="text-lg text-gray-700 mb-2 text-center bg-white/50 border-dashed h-auto py-1"
               placeholder="Job Title"
             />
@@ -213,7 +209,7 @@ export function ResumePreview({ data, editable = false, onDataChange }: ResumePr
             <h1 className="text-3xl font-bold tracking-wide uppercase mb-1">
               {personalInfo.fullName}
             </h1>
-            <p className="text-lg text-gray-700 mb-2">{title}</p>
+            <p className="text-lg text-gray-700 mb-2">{personalInfo.title}</p>
             <div className="flex justify-center items-center gap-4 text-sm text-gray-600 flex-wrap">
               <span>{personalInfo.phone}</span>
               <span className="hidden sm:inline">|</span>
@@ -251,7 +247,7 @@ export function ResumePreview({ data, editable = false, onDataChange }: ResumePr
       )}
 
       {/* Technical Skills */}
-      {(technicalSkills.length > 0 || editable) && (
+      {(skills.length > 0 || editable) && (
         <section className="mb-6">
           <div className="flex items-center justify-between border-b border-gray-300 pb-1 mb-3">
             <h2 className="text-lg font-bold uppercase tracking-wider">
@@ -270,7 +266,7 @@ export function ResumePreview({ data, editable = false, onDataChange }: ResumePr
             )}
           </div>
           <div className="flex flex-wrap gap-2">
-            {technicalSkills.map((skill, index) => (
+            {skills.map((skill, index) => (
               <div key={index} className="relative group">
                 {editable ? (
                   <div className="flex items-center gap-1">
@@ -300,7 +296,7 @@ export function ResumePreview({ data, editable = false, onDataChange }: ResumePr
       )}
 
       {/* Professional Experience */}
-      {(professionalExperience.length > 0 || editable) && (
+      {(workexperience.length > 0 || editable) && (
         <section className="mb-6">
           <div className="flex items-center justify-between border-b border-gray-300 pb-1 mb-3">
             <h2 className="text-lg font-bold uppercase tracking-wider">
@@ -319,7 +315,7 @@ export function ResumePreview({ data, editable = false, onDataChange }: ResumePr
             )}
           </div>
           <div className="space-y-4">
-            {professionalExperience.map((exp, index) => (
+            {workexperience.map((exp, index) => (
               <div key={index} className={`relative ${editable ? "group pl-2 border-l-2 border-transparent hover:border-blue-300" : ""}`}>
                 {editable && (
                   <Button
@@ -348,8 +344,8 @@ export function ResumePreview({ data, editable = false, onDataChange }: ResumePr
                 {editable ? (
                   <div className="flex justify-between items-center gap-2 mb-2">
                     <Input
-                      value={exp.company}
-                      onChange={(e) => updateExperience(index, "company", e.target.value)}
+                      value={exp.companyname}
+                      onChange={(e) => updateExperience(index, "companyname", e.target.value)}
                       className="text-sm text-gray-600 italic bg-white/50 border-dashed h-auto py-0.5 flex-1"
                       placeholder="Company Name"
                     />
@@ -361,18 +357,18 @@ export function ResumePreview({ data, editable = false, onDataChange }: ResumePr
                     />
                   </div>
                 ) : (
-                  (exp.company || exp.duration) && (
+                  (exp.companyname || exp.duration) && (
                     <div className="flex justify-between items-center flex-wrap gap-1">
-                      <span className="text-sm text-gray-600 italic">{exp.company}</span>
+                      <span className="text-sm text-gray-600 italic">{exp.companyname}</span>
                       <span className="text-sm text-gray-600 ml-auto">{exp.duration}</span>
                     </div>
                   )
                 )}
 
                 {/* Bullets */}
-                {(exp.bullets.length > 0 || editable) && (
+                {(exp.experience.length > 0 || editable) && (
                   <ul className={`${editable ? "" : "list-disc list-outside ml-5"} mt-2 space-y-1`}>
-                    {exp.bullets.map((bullet, bulletIndex) => (
+                    {exp.experience.map((bullet, bulletIndex) => (
                       <li key={bulletIndex} className={`text-sm text-gray-800 ${editable ? "flex items-start gap-2 group/bullet" : ""}`}>
                         {editable ? (
                           <>
