@@ -64,7 +64,7 @@ const PROMPT_TEXT = `First, I will provide my template resume. Then, I will shar
     4. For Professional Experience Section:
         - Work experience from all companies (mentioned in Template Resume) must be included and fully detailed
         - Each bullet point must align with the job description’s responsibilities and required technical skills.
-        - Each sentence must be LONG and descriptive, clearly outlining detailed responsibilities, achievements, and accomplishments, while naturally incorporating the technical skills, tools, and technologies used.
+        - Each sentence must be long and descriptive, clearly outlining detailed responsibilities, achievements, and accomplishments, while naturally incorporating the technical skills, tools, and technologies used.
         - Every sentence should include action verbs, technical skills, and soft skills from the job description where relevant.
         - Each sentence must not be skills list sentence. They must be human readable, senior professional, outcome and achievement focused rather than what I did.
         - Sentences must be written in a professional, Outcome and achievement focused, and results-oriented style suitable for ATS scanning and recruiter readability.
@@ -104,130 +104,13 @@ const PROMPT_TEXT = `First, I will provide my template resume. Then, I will shar
                       {
                         "companyname": "...",
                         "role": "...",
-                        "duration": "MMM-YYYY - MMM-YYYY",
+                        "duration": "MMM YYYY - MMM YYYY",
                         "experience": ["...", "...", "..."]
                       }
                     ]
             }
 
-<<<<<<< Updated upstream
-Return result only. Do not include explanations, notes, or intermediate versions.
-
-The content should only consists with alphabetic letters, numbers, mathmatic operations. do not make special letters like "𝑣𝑠"
-
----
-
-Iteration and ATS Optimization Loop
-
-1 Evaluate the resume using an ATS scoring model from 0 to 100 percent based on:
-
-* Keyword match
-* Skills alignment
-* Experience relevance
-* Role and title alignment
-* Measurable impact
-* Formatting and ATS readability
-
-2 If score is below 90 percent:
-
-* Identify all gaps such as missing keywords, weak phrasing, or missing skills
-* Improve the resume by:
-
-  * Adding missing keywords naturally
-  * Strengthening bullet points with measurable impact
-  * Improving alignment with required and preferred skills
-  * Adjusting phrasing for recruiter search optimization
-  * Enhancing technical depth
-
-3 Regenerate the full resume
-
-4 Repeat until ATS score is at least 90 percent
-
-5 Output only the final optimized resume
-
----
-
-Required JSON Output Format
-
-{
-"target_company": "...",
-"summary": "...",
-"skills": ["...", "..."],
-"workexperience": [
-{
-"companyname": "...",
-"role": "...",
-"duration": "MMM YYYY - MMM YYYY",(like Mar 2020 - Apr 2024)
-"experience": ["...", "...", "..."]
-}
-]
-}
-
----
-
-Field Requirements
-
-target_company
-
-* Extract the company name from the job description exactly as written
-* If no company name is present, use ""
-
-Summary
-
-* 4 to 6 lines
-* Senior level tone
-* Include key ATS keywords naturally
-* Highlight experience, technical strengths, domain expertise, and leadership
-
-Skills
-
-* Maximum 50 items
-* Include all required and preferred skills from the job description
-* Include related and commonly searched technologies
-* No duplicates
-
-Work Experience
-
-* Minimum 9 bullet points per company
-* Work experience from all companies (mentioned in Career Milestone) must be included and fully detailed
-* Each company must reflect unique domain, system, project scope, business goals, challenges and measurable outcomes
-* Each sentence must not be skills list sentence. They must be human readable, senior professional, outcome and achievement focused rather than what I did.
-* Each sentence must be a bit long and descriptive.
-* bullets must clearly describe:
-  * What project/system was built
-  * Technologies used
-  * Why those technologies were chosen
-  * Business problem solved
-  * Impact delivered without EXACT numbers
-* Use structure: Action plus Technology plus Scope plus Impact
-* No repeated wording or structure across bullets
-
----
-
-Rules
-
-Timeline Accuracy
-
-* Only include technologies available during the specified time period
-
-Tailoring
-
-* Fully align with job description
-* Include all required and preferred skills
-* Use role specific terminology and architecture language
-
----
-
-Final Output Rule
-
-Return only the final JSON resume with ATS score at least 90 percent
-
-Do not include explanations or intermediate results
-
-Career Milestone:
-=======
 Template Resume:
->>>>>>> Stashed changes
 
 JD:`
 
